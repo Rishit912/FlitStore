@@ -1,0 +1,172 @@
+import React, { useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useSelector, useDispatch } from "react-redux";
+import { toast } from 'react-toastify';
+import { clearCartItems } from '../slices/cartSlice';
+
+const PlaceOrderScreen = () => {
+    const navigate = useNavigate();
+    const dispatch = useDispatch(); // <--- THIS was missing or undefined before
+    
+    const cart = useSelector((state) => state.cart);
+
+    // --- CALCULATOR LOGIC ---
+    const addDecimals = (num) => {
+        return (Math.round(num * 100) / 100).toFixed(2);
+    };
+
+    const itemsPrice = addDecimals(
+        cart.cartItems.reduce((acc, item) => acc + item.price * item.qty, 0)
+    );
+
+    const shippingPrice = addDecimals(Number(itemsPrice) > 100 ? 0 : 10);
+    const taxPrice = addDecimals(Number((0.15 * itemsPrice).toFixed(2)));
+    const totalPrice = (
+        Number(itemsPrice) +
+        Number(shippingPrice) +
+        Number(taxPrice)
+    ).toFixed(2);
+
+    useEffect(() => {
+        if (!cart.shippingAddress.address) {
+            navigate('/shipping');
+        } else if (!cart.paymentMethod) {
+            navigate('/payment');
+        }
+    }, [navigate, cart.shippingAddress.address, cart.paymentMethod]);
+
+    const placeOrderHandler = async () => {
+        try {
+            // 1. Get Token Manually (Safety Check)
+            const storedUser = JSON.parse(localStorage.getItem('userInfo'));
+            const token = storedUser ? storedUser.token : null;
+
+            if (!token) {
+                toast.error("Session expired. Please login again.");
+                navigate('/login');
+                return;
+            }
+
+            // 2. Send Order to Backend
+            const res = await fetch('/api/orders', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({
+                    orderItems: cart.cartItems,
+                    shippingAddress: cart.shippingAddress,
+                    paymentMethod: cart.paymentMethod,
+                    itemsPrice: itemsPrice,
+                    shippingPrice: shippingPrice,
+                    taxPrice: taxPrice,
+                    totalPrice: totalPrice,
+                }),
+            });
+
+            const data = await res.json();
+
+            if (!res.ok) {
+                throw new Error(data.message || 'Something went wrong');
+            }
+
+            // 3. Success!
+            dispatch(clearCartItems()); // Clear the cart
+            navigate(`/order/${data._id}`); // Redirect to Order Details (We need to build this page!)
+            toast.success("Order Placed Successfully!");
+
+        } catch (error) {
+            toast.error(error.message);
+        }
+    };
+
+    return (
+        <div className="container mx-auto px-4 py-8">
+            <h1 className="text-3xl font-bold mb-8 text-gray-800">Review Order</h1>
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                {/* LEFT SIDE: Order Details */}
+                <div className="lg:col-span-2 space-y-6">
+
+                    {/* Shipping Info */}
+                    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                        <h2 className="text-xl font-bold mb-4 text-gray-700">Shipping</h2>
+                        <p className="text-gray-600">
+                            <strong>Address: </strong>
+                            {cart.shippingAddress.address}, {cart.shippingAddress.city},{' '}
+                            {cart.shippingAddress.postalCode}, {cart.shippingAddress.country}
+                        </p>
+                    </div>
+
+                    {/* Payment Info */}
+                    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                        <h2 className="text-xl font-bold mb-4 text-gray-700">Payment Method</h2>
+                        <p className="text-gray-600">
+                            <strong>Method: </strong>
+                            {cart.paymentMethod}
+                        </p>
+                    </div>
+
+                    {/* Order Items */}
+                    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                        <h2 className="text-xl font-bold mb-4 text-gray-700">Order Items</h2>
+                        {cart.cartItems.length === 0 ? (
+                            <p>Your cart is empty</p>
+                        ) : (
+                            <div className="space-y-4">
+                                {cart.cartItems.map((item, index) => (
+                                    <div key={index} className="flex items-center justify-between border-b pb-4 last:border-b-0 last:pb-0">
+                                        <div className="flex items-center">
+                                            <img src={item.image} alt={item.name} className="w-16 h-16 object-cover rounded mr-4" />
+                                            <Link to={`/product/${item._id}`} className="text-blue-600 font-medium hover:underline">
+                                                {item.name}
+                                            </Link>
+                                        </div>
+                                        <div className="text-gray-600">
+                                            {item.qty} x ₹{item.price} = <strong>₹{(item.qty * item.price).toFixed(2)}</strong>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                {/* RIGHT SIDE: Order Summary */}
+                <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-100 h-fit">
+                    <h2 className="text-2xl font-bold mb-6 text-gray-800">Order Summary</h2>
+
+                    <div className="space-y-3 text-gray-600">
+                        <div className="flex justify-between">
+                            <span>Items</span>
+                            <span>₹{itemsPrice}</span>
+                        </div>
+                        <div className="flex justify-between">
+                            <span>Shipping</span>
+                            <span>₹{shippingPrice}</span>
+                        </div>
+                        <div className="flex justify-between">
+                            <span>Tax</span>
+                            <span>₹{taxPrice}</span>
+                        </div>
+                        <div className="border-t pt-3 mt-3 flex justify-between text-xl font-bold text-gray-800">
+                            <span>Total</span>
+                            <span>₹{totalPrice}</span>
+                        </div>
+                    </div>
+
+                    <button
+                        type="button"
+                        className="w-full bg-blue-600 text-white py-3 rounded-lg font-bold hover:bg-blue-700 transition-colors mt-8"
+                        onClick={placeOrderHandler}
+                    >
+                        Place Order
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+export default PlaceOrderScreen;
