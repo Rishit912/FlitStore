@@ -3,8 +3,13 @@ import { Link, useParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { PayPalScriptProvider, PayPalButtons } from '@paypal/react-paypal-js';
 import { useDispatch, useSelector } from 'react-redux';
+import axios from 'axios';
+import { jsPDF } from 'jspdf'; 
+import autoTable from 'jspdf-autotable'; // 🟢 FIXED: Import as a standalone function
 import { deliverOrder } from '../actions/orderActions';
 import { ORDER_DELIVER_RESET } from '../constants/orderConstants';
+import { applyDiscount } from '../slices/cartSlice';
+import { FaWhatsapp, FaTicketAlt, FaFilePdf } from 'react-icons/fa'; 
 
 const OrderScreen = () => {
   const { id: orderId } = useParams();
@@ -14,11 +19,97 @@ const OrderScreen = () => {
   const [loading, setLoading] = useState(true);
   const [paypalClientId, setPaypalClientId] = useState('');
   const [razorpayKeyId, setRazorpayKeyId] = useState('');
+  const [couponCode, setCouponCode] = useState('');
+
+  const cart = useSelector((state) => state.cart);
+  const { discount } = cart;
 
   const orderDeliver = useSelector((state) => state.orderDeliver);
   const { loading: loadingDeliver, success: successDeliver } = orderDeliver;
 
   const { userInfo } = useSelector((state) => state.auth);
+
+  // 🟢 FIXED INVOICE LOGIC
+  const downloadInvoice = () => {
+    const doc = new jsPDF();
+    const discountAmt = (order.totalPrice * (discount / 100));
+    const finalCalculatedTotal = order.totalPrice - discountAmt;
+
+    // Header & Branding
+    doc.setFontSize(22);
+    doc.setTextColor(37, 99, 235);
+    doc.text('FlitStore', 14, 20);
+    
+    doc.setFontSize(10);
+    doc.setTextColor(100);
+    doc.text(`Order ID: ${order._id}`, 14, 28);
+    doc.text(`Date: ${new Date(order.createdAt).toLocaleDateString()}`, 14, 34);
+
+    // Billing Details
+    doc.setFontSize(12);
+    doc.setTextColor(0);
+    doc.text('Bill To:', 14, 50);
+    doc.setFontSize(10);
+    doc.text(`${order.user.name}`, 14, 56);
+    doc.text(`${order.shippingAddress.address}`, 14, 62);
+    doc.text(`${order.shippingAddress.city} - ${order.shippingAddress.postalCode}`, 14, 68);
+
+    // Items Table
+    const tableColumn = ["Product", "Qty", "Price", "Total"];
+    const tableRows = order.orderItems.map(item => [
+      item.name,
+      item.qty,
+      `INR ${item.price}`,
+      `INR ${item.qty * item.price}`
+    ]);
+
+    // 🟢 FIXED: Use autoTable(doc, ...) instead of doc.autoTable(...)
+    autoTable(doc, {
+      startY: 80,
+      head: [tableColumn],
+      body: tableRows,
+      theme: 'striped',
+      headStyles: { fillColor: [37, 99, 235] }
+    });
+
+    // Totals Section using lastAutoTable positioning
+    const finalY = doc.lastAutoTable.finalY + 10;
+    doc.setFontSize(10);
+    doc.text(`Subtotal: INR ${order.itemsPrice}`, 140, finalY);
+    
+    if (discount > 0) {
+      doc.setTextColor(34, 197, 94);
+      doc.text(`Discount (${discount}%): -INR ${discountAmt.toFixed(2)}`, 140, finalY + 7);
+    }
+
+    doc.setTextColor(0);
+    doc.setFontSize(14);
+    doc.text(`Grand Total: INR ${finalCalculatedTotal.toFixed(2)}`, 140, finalY + 16);
+
+    // Footer
+    doc.setFontSize(8);
+    doc.setTextColor(150);
+    doc.text('Thank you for shopping with FlitStore - Powered by FlitStore', 105, 285, { align: 'center' });
+
+    doc.save(`FlitStore_Invoice_${order._id.substring(0, 6)}.pdf`);
+  };
+
+  const trackOnWhatsApp = () => {
+    const phoneNumber = "9909345049"; 
+    const message = `Hello FlitStore Support! I want to track my Order ID: ${order._id}. It was placed on ${new Date(order.createdAt).toLocaleDateString()}.`;
+    const encodedMessage = encodeURIComponent(message);
+    window.open(`https://wa.me/${phoneNumber}?text=${encodedMessage}`, '_blank');
+  };
+
+  const applyCouponHandler = async () => {
+    try {
+      const { data } = await axios.post('/api/coupons/validate', { code: couponCode });
+      dispatch(applyDiscount(data.discount));
+      toast.success(`${data.discount}% Discount Applied!`);
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Invalid Code');
+    }
+  };
 
   const loadRazorpayScript = () => {
     return new Promise((resolve) => {
@@ -33,30 +124,25 @@ const OrderScreen = () => {
   useEffect(() => {
     const fetchOrderAndConfig = async () => {
       try {
-                const res = await fetch(`/api/orders/${orderId}`, {
-                    credentials: 'include',
-                });
+        const res = await fetch(`/api/orders/${orderId}`, { credentials: 'include' });
         const data = await res.json();
-        
         if (!res.ok) throw new Error(data.message);
-        
         setOrder(data);
         setLoading(false);
 
         if (!data.isPaid) {
-            try {
-                const resPaypal = await fetch('/api/config/paypal');
-                const paypalData = await resPaypal.json();
-                setPaypalClientId(paypalData.clientId);
-            } catch (err) { }
+          try {
+            const resPaypal = await fetch('/api/config/paypal');
+            const paypalData = await resPaypal.json();
+            setPaypalClientId(paypalData.clientId);
+          } catch (err) { }
 
-            try {
-                const resRazorpay = await fetch('/api/config/razorpay');
-                const razorpayData = await resRazorpay.json();
-                setRazorpayKeyId(razorpayData.key);
-            } catch (err) { }
+          try {
+            const resRazorpay = await fetch('/api/config/razorpay');
+            const razorpayData = await resRazorpay.json();
+            setRazorpayKeyId(razorpayData.key);
+          } catch (err) { }
         }
-
       } catch (err) {
         toast.error(err.message);
         setLoading(false);
@@ -65,11 +151,8 @@ const OrderScreen = () => {
 
     if (successDeliver) {
         dispatch({ type: ORDER_DELIVER_RESET });
-        fetchOrderAndConfig();
-    } else {
-        fetchOrderAndConfig();
     }
-
+    fetchOrderAndConfig();
   }, [orderId, successDeliver, dispatch]);
 
   const handleRazorpayPayment = async () => {
@@ -77,11 +160,16 @@ const OrderScreen = () => {
         toast.error("Razorpay Key not found.");
         return;
     }
-    const totalAmount = Number(order?.totalPrice);
-    if (!totalAmount || Number.isNaN(totalAmount)) {
+
+    const baseAmount = Number(order?.totalPrice);
+    const discountAmount = (baseAmount * (discount / 100));
+    const finalTotal = baseAmount - discountAmount;
+
+    if (!finalTotal || Number.isNaN(finalTotal)) {
         toast.error('Invalid order amount.');
         return;
     }
+
     const res = await loadRazorpayScript();
     if (!res) {
         toast.error('Razorpay SDK failed to load.');
@@ -92,8 +180,14 @@ const OrderScreen = () => {
             method: 'POST',
             credentials: 'include',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ amount: totalAmount }),
+            body: JSON.stringify({ amount: finalTotal }), 
         });
+
+        if (!result.ok) {
+            const errorText = await result.text();
+            throw new Error(errorText || 'Failed to create Razorpay order');
+        }
+
         const data = await result.json();
         if (!data) return;
 
@@ -104,21 +198,11 @@ const OrderScreen = () => {
             name: "FlitStore",
             description: `Payment for Order #${order._id}`,
             order_id: data.id, 
-            method: {
-                upi: true,
-                card: true,
-                netbanking: true,
-                wallet: true,
-            },
-            prefill: {
-                name: order?.user?.name,
-                email: order?.user?.email,
-            },
             handler: async function (response) {
                  const payRes = await fetch(`/api/orders/${orderId}/pay`, {
                     method: 'PUT',
-                          credentials: 'include',
-                          headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         id: response.razorpay_payment_id,
                         status: 'COMPLETED',
@@ -130,12 +214,13 @@ const OrderScreen = () => {
                 setOrder(updatedOrder);
                 toast.success('Payment Successful!');
             },
-            prefill: { name: order.user.name, email: order.user.email },
             theme: { color: "#2563eb" },
         };
         const paymentObject = new window.Razorpay(options);
         paymentObject.open();
-    } catch (err) { toast.error(err.message); }
+    } catch (err) { 
+        toast.error(err.message || 'Payment initiation failed'); 
+    }
   };
 
   const deliverHandler = () => {
@@ -160,44 +245,6 @@ const OrderScreen = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2 space-y-6">
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-                    <h2 className="text-lg font-semibold text-gray-800 mb-4">Order Status</h2>
-                    <div className="relative">
-                        <div className="absolute left-4 top-0 h-full w-0.5 bg-gray-200"></div>
-                        <ul className="space-y-6 relative">
-                            <li className="flex items-center">
-                                <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center text-white text-xs z-10">✓</div>
-                                <div className="ml-4">
-                                    <p className="font-medium text-gray-900">Order Placed</p>
-                                    <p className="text-xs text-gray-500">{new Date(order.createdAt).toLocaleTimeString()}</p>
-                                </div>
-                            </li>
-                            <li className="flex items-center">
-                                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-xs z-10 ${order.isPaid ? 'bg-green-500' : 'bg-gray-300'}`}>
-                                    {order.isPaid ? '✓' : '2'}
-                                </div>
-                                <div className="ml-4">
-                                    <p className={`font-medium ${order.isPaid ? 'text-gray-900' : 'text-gray-400'}`}>Payment Confirmed</p>
-                                    {order.isPaid && <p className="text-xs text-gray-500">{order.paidAt.substring(0, 10)}</p>}
-                                </div>
-                            </li>
-                            <li className="flex items-center">
-                                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-xs z-10 ${order.isDelivered ? 'bg-green-500' : 'bg-gray-300'}`}>
-                                    {order.isDelivered ? '✓' : '3'}
-                                </div>
-                                <div className="ml-4">
-                                    <p className={`font-medium ${order.isDelivered ? 'text-gray-900' : 'text-gray-400'}`}>Delivered</p>
-                                    {order.isDelivered ? (
-                                        <p className="text-xs text-gray-500">{order.deliveredAt.substring(0, 10)}</p>
-                                    ) : (
-                                        <p className="text-xs text-orange-500 font-medium animate-pulse">In Progress...</p>
-                                    )}
-                                </div>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-
                 <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
                     <h2 className="text-lg font-semibold text-gray-800 mb-4">Items in Your Order</h2>
                     <div className="divide-y divide-gray-100">
@@ -224,9 +271,6 @@ const OrderScreen = () => {
                         <p><span className="font-medium text-gray-900">Address:</span> {order.shippingAddress.address}, {order.shippingAddress.city} - {order.shippingAddress.postalCode}</p>
                      </div>
                 </div>
-                
-                 {/* Map Component */}
-             
             </div>
 
             <div className="space-y-6">
@@ -236,11 +280,56 @@ const OrderScreen = () => {
                         <div className="flex justify-between text-gray-600"><span>Subtotal</span><span>₹{order.itemsPrice}</span></div>
                         <div className="flex justify-between text-gray-600"><span>Shipping</span><span>₹{order.shippingPrice}</span></div>
                         <div className="flex justify-between text-gray-600"><span>Tax</span><span>₹{order.taxPrice}</span></div>
+                        
+                        {discount > 0 && (
+                          <div className="flex justify-between text-green-600 font-bold">
+                            <span>Coupon Discount ({discount}%)</span>
+                            <span>-₹{(order.totalPrice * (discount / 100)).toFixed(2)}</span>
+                          </div>
+                        )}
                     </div>
+
                     <div className="flex justify-between items-center text-xl font-bold text-gray-900 mb-6">
                         <span>Total</span>
-                        <span>₹{order.totalPrice}</span>
+                        <span>₹{(order.totalPrice - (order.totalPrice * (discount / 100))).toFixed(2)}</span>
                     </div>
+
+                    {!order.isPaid && (
+                      <div className="mb-6 p-4 bg-gray-50 rounded-xl border border-dashed border-gray-300">
+                        <div className="flex items-center gap-2 mb-2 text-gray-700 font-bold text-xs uppercase">
+                          <FaTicketAlt /> Have a Coupon?
+                        </div>
+                        <div className="flex gap-2">
+                          <input 
+                            type="text" 
+                            placeholder="FLIT10"
+                            className="w-full p-2 border rounded-lg outline-none focus:ring-1 focus:ring-blue-500 uppercase font-mono text-sm"
+                            value={couponCode}
+                            onChange={(e) => setCouponCode(e.target.value)}
+                          />
+                          <button onClick={applyCouponHandler} className="bg-gray-900 text-white px-4 rounded-lg text-[10px] font-black uppercase tracking-widest">Apply</button>
+                        </div>
+                      </div>
+                    )}
+
+                    <button 
+                        onClick={trackOnWhatsApp}
+                        className="w-full mb-4 bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-4 rounded-lg shadow-md transition-colors flex items-center justify-center gap-2"
+                    >
+                        <FaWhatsapp className="text-xl" />
+                        <span>Track on WhatsApp</span>
+                    </button>
+
+                    {/* 🟢 FIXED INVOICE BUTTON: Opens the downloadInvoice function */}
+                    {order.isPaid && (
+                      <button 
+                        onClick={downloadInvoice}
+                        className="w-full mb-4 bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold py-3 px-4 rounded-lg border border-gray-200 transition flex items-center justify-center gap-2"
+                      >
+                        <FaFilePdf className="text-red-600 text-xl" />
+                        <span>Download Invoice</span>
+                      </button>
+                    )}
 
                     {!order.isPaid ? (
                         <div className="mt-4 space-y-3">
@@ -249,7 +338,12 @@ const OrderScreen = () => {
                              </button>
                              {paypalClientId && (
                                 <PayPalScriptProvider options={{ "client-id": paypalClientId }}>
-                                    <PayPalButtons createOrder={(data, actions) => actions.order.create({ purchase_units: [{ amount: { value: order.totalPrice } }] })} onApprove={(data, actions) => actions.order.capture().then(async (details) => { window.location.reload(); })} />
+                                    <PayPalButtons 
+                                      createOrder={(data, actions) => actions.order.create({ 
+                                        purchase_units: [{ amount: { value: (order.totalPrice - (order.totalPrice * (discount / 100))).toFixed(2) } }] 
+                                      })} 
+                                      onApprove={(data, actions) => actions.order.capture().then(async (details) => { window.location.reload(); })} 
+                                    />
                                 </PayPalScriptProvider>
                             )}
                         </div>
@@ -259,16 +353,15 @@ const OrderScreen = () => {
                         </div>
                     )}
 
-                    {/* THIS IS THE BUTTON */}
                    {userInfo && userInfo.isAdmin && order.isPaid && !order.isDelivered && (
-    <button
-        type="button"
-        className="w-full bg-gray-900 text-white font-bold py-3 rounded-lg hover:bg-black transition mt-4"
-        onClick={deliverHandler}
-    >
-        {loadingDeliver ? 'Updating...' : 'Mark As Delivered'}
-    </button>
-)}
+                    <button
+                        type="button"
+                        className="w-full bg-gray-900 text-white font-bold py-3 rounded-lg hover:bg-black transition mt-4"
+                        onClick={deliverHandler}
+                    >
+                        {loadingDeliver ? 'Updating...' : 'Mark As Delivered'}
+                    </button>
+                    )}
                 </div>
             </div>
         </div>

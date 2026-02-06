@@ -2,7 +2,7 @@ import { createSlice } from '@reduxjs/toolkit';
 
 const sanitizeCartState = (state) => {
   if (!state || !Array.isArray(state.cartItems)) {
-    return { cartItems: [], shippingAddress: {}, paymentMethod: 'PayPal' };
+    return { cartItems: [], shippingAddress: {}, paymentMethod: 'PayPal', discount: 0 };
   }
 
   const cartItems = state.cartItems
@@ -11,7 +11,7 @@ const sanitizeCartState = (state) => {
       _id: item._id,
       name: item.name,
       image: item.image,
-      price: Number(item.price),
+      price: Number(item.price), 
       countInStock: item.countInStock,
       qty: item.qty,
     }))
@@ -21,20 +21,18 @@ const sanitizeCartState = (state) => {
     cartItems,
     shippingAddress: state.shippingAddress || {},
     paymentMethod: state.paymentMethod || 'PayPal',
+    discount: state.discount || 0, // 🟢 Keep track of applied coupon %
   };
 };
 
-// 1. Load EVERYTHING from 'cart' (Items, Address, Payment)
-// If 'cart' doesn't exist, start with empty arrays/objects
 const initialState = localStorage.getItem('cart')
   ? sanitizeCartState(JSON.parse(localStorage.getItem('cart')))
-  : { cartItems: [], shippingAddress: {}, paymentMethod: 'PayPal' };
+  : { cartItems: [], shippingAddress: {}, paymentMethod: 'PayPal', discount: 0 };
 
 const cartSlice = createSlice({
   name: 'cart',
   initialState,
   reducers: {
-    // Action 1: Add Item
     addToCart: (state, action) => {
       const item = action.payload;
       const normalizedItem = {
@@ -46,59 +44,55 @@ const cartSlice = createSlice({
         qty: item.qty,
       };
 
-      // Check if item already exists based on ID
       const existItem = state.cartItems.find((x) => x._id === normalizedItem._id);
 
       if (existItem) {
-        // If it exists, update it (e.g. new quantity)
         state.cartItems = state.cartItems.map((x) =>
           x._id === existItem._id ? normalizedItem : x
         );
       } else {
-        // If not, add new item
         state.cartItems = [...state.cartItems, normalizedItem];
       }
 
-      // Save entire state to 'cart'
       localStorage.setItem('cart', JSON.stringify(state));
     },
 
-    // Action 2: Remove Item
+    // 🟢 NEW ACTION: Apply Coupon Discount %
+    applyDiscount: (state, action) => {
+      state.discount = action.payload;
+      localStorage.setItem('cart', JSON.stringify(state));
+    },
+
     removeFromCart: (state, action) => {
-      // Filter out the item matching the ID in payload
       state.cartItems = state.cartItems.filter((x) => x._id !== action.payload);
-      
       localStorage.setItem('cart', JSON.stringify(state));
     },
 
-    // Action 3: Save Shipping Address
     saveShippingAddress: (state, action) => {
       state.shippingAddress = action.payload;
       localStorage.setItem('cart', JSON.stringify(state));
     },
 
-    // Action 4: Save Payment Method
     savePaymentMethod: (state, action) => {
       state.paymentMethod = action.payload;
       localStorage.setItem('cart', JSON.stringify(state));
     },
 
-
-    // Clear Cart 
-    clearCartItems: (state, action) => {
+    clearCartItems: (state) => {
       state.cartItems = [];
+      state.discount = 0; // Reset discount on clear
       localStorage.setItem('cart', JSON.stringify(state));
     },
   },
 });
 
-// Export ALL actions
 export const { 
   addToCart, 
   removeFromCart, 
   saveShippingAddress, 
   savePaymentMethod,
-  clearCartItems 
+  clearCartItems,
+  applyDiscount // 🟢 Export new action
 } = cartSlice.actions;
 
 export default cartSlice.reducer;

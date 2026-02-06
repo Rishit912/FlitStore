@@ -1,6 +1,6 @@
 import asyncHandler from 'express-async-handler';
-import Order from '../models/orderModel.js'; // 🟢 Fixed typo and added .js extension
-import Product from '../models/product.js'; // 🟢 Added for getDashboardSummary
+import Order from '../models/orderModel.js';
+import Product from '../models/product.js'; 
 
 // @desc    Create new order
 // @route   POST /api/orders
@@ -14,6 +14,7 @@ export const addOrderItems = asyncHandler(async (req, res) => {
     taxPrice,
     shippingPrice,
     totalPrice,
+    discount, // 🟢 Capture discount from frontend
   } = req.body;
 
   if (orderItems && orderItems.length === 0) {
@@ -24,6 +25,7 @@ export const addOrderItems = asyncHandler(async (req, res) => {
       orderItems: orderItems.map((x) => ({
         ...x,
         product: x.product || x._id,
+        price: Number(x.price), // Secure bargaining logic
         _id: undefined,
       })),
       user: req.user._id,
@@ -33,6 +35,7 @@ export const addOrderItems = asyncHandler(async (req, res) => {
       taxPrice,
       shippingPrice,
       totalPrice,
+      discount: discount || 0, // 🟢 Save discount to database
     });
 
     const createdOrder = await order.save();
@@ -104,7 +107,7 @@ export const getOrders = asyncHandler(async (req, res) => {
   res.json(orders);
 });
 
-// @desc    Get dashboard summary data
+// @desc    Get dashboard summary data for AdminSummary component
 // @route   GET /api/orders/summary
 // @access  Private/Admin
 export const getDashboardSummary = asyncHandler(async (req, res) => {
@@ -112,14 +115,21 @@ export const getDashboardSummary = asyncHandler(async (req, res) => {
   const numOrders = orders.length;
   const numProducts = await Product.countDocuments();
   
+  // Total Sales Calculation
   const totalSales = orders.reduce((acc, item) => acc + item.totalPrice, 0);
   
-  // 20% profit margin for your FlitCode demonstration
+  // 🟢 NEW STATS FOR ADMIN SUMMARY
+  const paidOrders = orders.filter(order => order.isPaid).length;
+  const couponUses = orders.filter(order => order.discount > 0).length; // Tracks coupon impact
+  
+  // 20% profit margin for your FlitStore demonstration
   const totalProfit = totalSales * 0.20;
 
   res.json({
     numOrders,
     numProducts,
+    paidOrders, // 🟢 Needed for AdminSummary
+    couponUses, // 🟢 Needed for AdminSummary
     totalSales: totalSales.toFixed(2),
     totalProfit: totalProfit.toFixed(2),
   });

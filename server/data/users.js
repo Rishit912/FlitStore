@@ -9,6 +9,13 @@ const users = [
     isVerified: true, // Admin is already verified
   },
   {
+    name: 'Admin Dangir',
+    email: 'dangirishit912@gmail.com',
+    password: 'password123',
+    isAdmin: true,
+    isVerified: true,
+  },
+  {
     name: 'John Doe',
     email: 'john@example.com',
     password: 'password123',

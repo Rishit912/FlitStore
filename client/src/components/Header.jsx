@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { logout } from '../slices/authSlice'; 
-import SearchBox from './SearchBox'; // 🟢 Added this import
+import SearchBox from './SearchBox';
 
 const Header = () => {
   const [userDropdown, setUserDropdown] = useState(false);
@@ -50,10 +50,9 @@ const Header = () => {
             </Link>
           )}
 
-          {/* 2. ADMIN DASHBOARD MENU */}
+          {/* 🟢 ADMIN DASHBOARD MENU UPDATED */}
           {userInfo && userInfo.isAdmin && (
             <div className="relative group"> 
-              {/* Added 'group' for hover support as a backup */}
               <button 
                 onClick={() => setAdminDropdown(!adminDropdown)}
                 className="flex items-center gap-2 text-gray-900 font-bold hover:text-blue-600 transition focus:outline-none py-2"
@@ -65,7 +64,7 @@ const Header = () => {
               {adminDropdown && (
                 <div 
                   className="absolute right-0 mt-1 w-56 bg-white border border-gray-100 rounded-xl shadow-2xl py-2 z-50"
-                  onMouseLeave={() => setAdminDropdown(false)} // Closes safely when mouse leaves
+                  onMouseLeave={() => setAdminDropdown(false)}
                 >
                   <div className="px-4 py-2 text-[10px] font-black text-gray-400 uppercase tracking-widest">Management</div>
                   
@@ -92,12 +91,21 @@ const Header = () => {
                   >
                     Order Records
                   </Link>
+
+                  {/* 🟢 NEW: COUPON MANAGEMENT LINK */}
+                  <Link 
+                    to="/admin/couponlist" 
+                    className="block px-4 py-3 text-sm font-bold text-gray-700 hover:bg-blue-50 hover:text-blue-600 border-l-4 border-transparent hover:border-blue-600"
+                    onClick={() => setAdminDropdown(false)}
+                  >
+                    Manage Coupons
+                  </Link>
                 </div>
               )}
             </div>
           )}
 
-          {/* 3. USER SECTION */}
+          {/* USER SECTION */}
           {userInfo && userInfo.name ? (
             <div className="relative">
               <button 
@@ -131,11 +139,7 @@ const Header = () => {
                   </button>
                 </div>
               )}
-
-
             </div>
-
-            
           ) : (
             <Link 
               to="/login" 

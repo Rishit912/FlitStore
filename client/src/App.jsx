@@ -27,6 +27,7 @@ import UserListScreen from './pages/UserListScreen';
 import ProductListScreen from './pages/ProductListScreen';
 import ProductEditScreen from './pages/ProductEditScreen';
 import OrderListScreen from './pages/OrderListScreen';
+import CouponListScreen from './screens/admin/CouponListScreen.jsx';
 
 function App() {
   return (
@@ -56,13 +57,15 @@ function App() {
           <Route path="/order/:id" element={<OrderScreen />} />
           <Route path="/profile" element={<ProfileScreen />} />
 
-          {/* Admin Routes - Fixed nesting */}
-          <Route path='/admin' element={<AdminRoute />}>
-            <Route path='userlist' element={<UserListScreen />} />
-            <Route path="productlist" element={<ProductListScreen />} />
-            <Route path="product/:id/edit" element={<ProductEditScreen />} />
-            <Route path="orderlist" element={<OrderListScreen />} />
-          </Route>
+         {/* Admin Routes - Fixed nesting and verified pathing */}
+<Route path='/admin' element={<AdminRoute />}>
+  <Route path='userlist' element={<UserListScreen />} />
+  <Route path="productlist" element={<ProductListScreen />} />
+  <Route path="product/:id/edit" element={<ProductEditScreen />} />
+  <Route path="orderlist" element={<OrderListScreen />} />
+  {/* 🟢 This matches the /admin/couponlist link in your Header */}
+  <Route path="couponlist" element={<CouponListScreen />} /> 
+</Route>
 
           {/* HomeScreen now handles both regular view and search view */}
           <Route path="/" element={<HomeScreen />} />
