@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import axios from 'axios';
-import { FaArrowLeft, FaHandshake, FaClock } from 'react-icons/fa'; // 🟢 Added FaClock
+import { FaArrowLeft, FaHandshake, FaClock } from 'react-icons/fa';
 import { addToCart } from '../slices/cartSlice';
 import { toast } from 'react-toastify';
 import Rating from '../components/Rating';
@@ -18,8 +18,7 @@ const ProductScreen = () => {
     const [negotiatedPrice, setNegotiatedPrice] = useState(null);
     const [isHaggling, setIsHaggling] = useState(false);
 
-    // 🟢 NEW STATES FOR TIMER
-    const [timer, setTimer] = useState(600); // 600 seconds = 10 minutes
+    const [timer, setTimer] = useState(600); 
     const [dealActive, setDealActive] = useState(false);
 
     const { id } = useParams();
@@ -37,7 +36,6 @@ const ProductScreen = () => {
         fetchProduct();
     }, [id]);
 
-    // 🟢 TIMER EFFECT: Resets the price when time runs out
     useEffect(() => {
         let interval = null;
         if (dealActive && timer > 0) {
@@ -47,6 +45,7 @@ const ProductScreen = () => {
         } else if (timer === 0) {
             setNegotiatedPrice(null);
             setDealActive(false);
+            setTimer(600);
             toast.error("The bargain deal has expired!");
             clearInterval(interval);
         }
@@ -68,7 +67,6 @@ const ProductScreen = () => {
             toast.success(`🤝 Deal! FlitStore AI accepted your offer of ₹${userOffer}`);
             setNegotiatedPrice(userOffer);
             setIsHaggling(false);
-            // 🟢 START THE TIMER
             setDealActive(true);
             setTimer(600); 
         } else if (userOffer >= product.price) {
@@ -78,23 +76,6 @@ const ProductScreen = () => {
         }
     };
 
-    const submitHandler = async (e) => {
-        e.preventDefault();
-        setLoadingReview(true);
-        try {
-            await axios.post(`/api/products/${id}/reviews`, { rating, comment });
-            toast.success('Review submitted successfully!');
-            setRating(0);
-            setComment('');
-            fetchProduct();
-        } catch (err) {
-            toast.error(err?.response?.data?.message || err.error);
-        } finally {
-            setLoadingReview(false);
-        }
-    };
-
-    // Helper to format the time MM:SS
     const formatTime = (seconds) => {
         const mins = Math.floor(seconds / 60);
         const secs = seconds % 60;
@@ -116,7 +97,7 @@ const ProductScreen = () => {
                     <h2 className="text-3xl font-bold text-gray-800 mb-4">{product.name}</h2>
                     <Rating value={product.rating} text={`${product.numReviews} reviews`} />
 
-                    <div className="flex items-center gap-4 mb-2">
+                    <div className="flex items-center gap-4 mb-2 mt-4">
                         {negotiatedPrice ? (
                             <>
                                 <p className="text-2xl font-bold text-green-600">₹{negotiatedPrice}</p>
@@ -127,7 +108,6 @@ const ProductScreen = () => {
                         )}
                     </div>
 
-                    {/* 🟢 VISUAL TIMER UI */}
                     {dealActive && (
                         <div className="flex items-center gap-2 bg-orange-50 text-orange-700 px-3 py-1 rounded-full w-fit mb-4 border border-orange-100 animate-pulse">
                             <FaClock className="text-sm" />
@@ -153,7 +133,7 @@ const ProductScreen = () => {
                                 <select 
                                     value={qty} 
                                     onChange={(e) => setQty(Number(e.target.value))}
-                                    className="border rounded-md px-3 py-1"
+                                    className="border rounded-md px-3 py-1 outline-none"
                                 >
                                     {[...Array(product.countInStock).keys()].map((x) => (
                                         <option key={x + 1} value={x + 1}>{x + 1}</option>
@@ -165,11 +145,16 @@ const ProductScreen = () => {
                         <button 
                             onClick={addToCartHandler}
                             disabled={product.countInStock === 0}
-                            className="w-full bg-blue-600 text-white py-3 rounded-lg font-bold hover:bg-blue-700 transition-colors disabled:bg-gray-400 mb-3"
+                            className={`w-full py-3 rounded-lg font-bold transition-colors mb-3 ${
+                                product.countInStock === 0 
+                                ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
+                                : 'bg-blue-600 text-white hover:bg-blue-700'
+                            }`}
                         >
-                            Add to Cart
+                            {product.countInStock === 0 ? 'Out of Stock' : 'Add to Cart'}
                         </button>
 
+                        {/* 🟢 Haggle only if in stock */}
                         {!negotiatedPrice && product.countInStock > 0 && (
                             <div className="mt-2 border-t pt-4">
                                 {!isHaggling ? (
@@ -197,11 +182,6 @@ const ProductScreen = () => {
                         )}
                     </div>
                 </div>
-            </div>
-
-            <div className="max-w-4xl">
-                <h2 className="text-2xl font-black uppercase mb-6 tracking-tighter">Customer Reviews</h2>
-                {/* ... Review items logic ... */}
             </div>
         </div>
     );

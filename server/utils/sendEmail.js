@@ -13,7 +13,8 @@ const sendEmail = async (options) => {
     from: `FlitStore <${process.env.EMAIL_USER}>`,
     to: options.email,
     subject: options.subject,
-    text: options.message,
+    text: options.message, // Fallback for plain text (like OTPs)
+    html: options.html,    // 🟢 Added to support professional Order Invoices
   };
 
   await transporter.sendMail(mailOptions);
