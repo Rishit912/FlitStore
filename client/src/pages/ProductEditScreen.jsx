@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import axios from 'axios'; // 👈 Added missing import
-import { toast } from 'react-toastify'; // 👈 Added for notifications
+import axios from 'axios'; 
+import { toast } from 'react-toastify'; 
 import { listProductDetails, updateProduct } from '../actions/productActions';
 import { PRODUCT_UPDATE_RESET } from '../constants/productConstants';
 
@@ -16,7 +16,7 @@ const ProductEditScreen = () => {
   const [category, setCategory] = useState('');
   const [countInStock, setCountInStock] = useState(0);
   const [description, setDescription] = useState('');
-  const [uploading, setUploading] = useState(false);
+  const [uploading, setUploading] = useState(false); // 🟢 Controls loading state
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -30,10 +30,10 @@ const ProductEditScreen = () => {
   useEffect(() => {
     if (successUpdate) {
       dispatch({ type: PRODUCT_UPDATE_RESET });
-      toast.success('Product Updated Successfully!'); // 🟢 Success toast
+      toast.success('Product Updated Successfully!');
       navigate('/admin/productlist');
     } else {
-      if (!product.name || product._id !== productId) {
+      if (!product || !product.name || product._id !== productId) {
         dispatch(listProductDetails(productId));
       } else {
         setName(product.name);
@@ -47,25 +47,29 @@ const ProductEditScreen = () => {
     }
   }, [dispatch, productId, product, navigate, successUpdate]);
 
+  // 🟢 Fixed Upload Handler
   const uploadFileHandler = async (e) => {
     const file = e.target.files[0];
     const formData = new FormData();
     formData.append('image', file);
-    setUploading(true);
+    setUploading(true); // Start loading
 
     try {
       const config = {
-        headers: { 'Content-Type': 'multipart/form-data' },
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
       };
 
       const { data } = await axios.post('/api/upload', formData, config);
-      setImage(data); 
+      
+      setImage(data.image); // Set the returned path
+      setUploading(false); // Stop loading
+      toast.success('Image Uploaded Successfully');
+    } catch (err) {
+      console.error(err);
       setUploading(false);
-      toast.info('Image Uploaded Successfully!'); // 🔵 Info toast for upload
-    } catch (error) {
-      console.error(error);
-      setUploading(false);
-      toast.error('Image upload failed'); // 🔴 Error toast
+      toast.error(err?.response?.data?.message || 'Image upload failure');
     }
   };
 
@@ -143,16 +147,20 @@ const ProductEditScreen = () => {
                 className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-6 file:rounded-full file:border-0 file:text-xs file:font-black file:bg-blue-600 file:text-white hover:file:bg-blue-700 transition cursor-pointer"
                 onChange={uploadFileHandler}
               />
-              {uploading && <p className="text-blue-600 text-xs font-bold mt-2 animate-pulse">Uploading to server...</p>}
+              {uploading && (
+                <div className="flex items-center mt-2 text-blue-600 text-xs font-bold animate-pulse">
+                   Uploading to server...
+                </div>
+              )}
             </div>
 
             <div>
               <label className="block text-xs font-black text-gray-400 uppercase mb-2 tracking-widest">Image Path</label>
               <input
                 type="text"
-                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:border-blue-600 transition shadow-inner text-gray-500"
+                className="w-full bg-gray-100 border border-gray-200 rounded-xl px-4 py-3 text-gray-500"
                 value={image}
-                onChange={(e) => setImage(e.target.value)}
+                readOnly // Better to make this read-only if they use the uploader
               />
             </div>
 
@@ -189,9 +197,10 @@ const ProductEditScreen = () => {
 
             <button
               type="submit"
-              className="w-full bg-black text-white py-4 rounded-2xl font-black uppercase tracking-widest hover:bg-blue-600 transition-all shadow-xl active:scale-95 mt-6"
+              disabled={uploading} // 🟢 Disable button while uploading
+              className={`w-full text-white py-4 rounded-2xl font-black uppercase tracking-widest transition-all shadow-xl active:scale-95 mt-6 ${uploading ? 'bg-gray-400 cursor-not-allowed' : 'bg-black hover:bg-blue-600'}`}
             >
-              SAVE CHANGES
+              {uploading ? 'Please Wait...' : 'SAVE CHANGES'}
             </button>
           </form>
         )}

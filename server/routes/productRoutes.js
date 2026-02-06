@@ -1,24 +1,35 @@
-
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const {
+
+// 🟢 Using Destructured Imports with .js extensions
+import {
   getProducts,
   getProductById,
   deleteProduct,
   createProduct,
-  updateProduct, 
-} = require('../controllers/productController');
-const { protect, admin } = require('../middleware/authMiddleware');
+  updateProduct,
+  getProductSuggestions,
+  createProductReview, // 🟢 Added for the new review feature
+} from '../controllers/productController.js';
 
-// Route for /api/products
+import { protect, admin } from '../middleware/authMiddleware.js';
+
+// --- SUGGESTIONS ROUTE ---
+router.route('/suggestions').get(getProductSuggestions);
+
+// --- BASE ROUTES ---
 router.route('/')
   .get(getProducts)
   .post(protect, admin, createProduct);
 
-// Route for /api/products/:id
+// --- REVIEW ROUTE ---
+// 🟢 New route for adding product reviews
+router.route('/:id/reviews').post(protect, createProductReview);
+
+// --- ID ROUTES ---
 router.route('/:id')
   .get(getProductById)
   .delete(protect, admin, deleteProduct)
-  .put(protect, admin, updateProduct); 
+  .put(protect, admin, updateProduct);
 
-module.exports = router;
+export default router;

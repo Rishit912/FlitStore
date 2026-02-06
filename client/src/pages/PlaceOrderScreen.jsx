@@ -9,23 +9,26 @@ const PlaceOrderScreen = () => {
     const dispatch = useDispatch(); // <--- THIS was missing or undefined before
     
     const cart = useSelector((state) => state.cart);
+    const { userInfo } = useSelector((state) => state.auth);
 
     // --- CALCULATOR LOGIC ---
     const addDecimals = (num) => {
-        return (Math.round(num * 100) / 100).toFixed(2);
+        const value = Number(num);
+        if (Number.isNaN(value)) return '0.00';
+        return (Math.round(value * 100) / 100).toFixed(2);
     };
 
     const itemsPrice = addDecimals(
-        cart.cartItems.reduce((acc, item) => acc + item.price * item.qty, 0)
+        cart.cartItems.reduce((acc, item) => acc + Number(item.price) * Number(item.qty), 0)
     );
 
     const shippingPrice = addDecimals(Number(itemsPrice) > 100 ? 0 : 10);
-    const taxPrice = addDecimals(Number((0.15 * itemsPrice).toFixed(2)));
-    const totalPrice = (
+    const taxPrice = addDecimals(Number((0.15 * Number(itemsPrice)).toFixed(2)));
+    const totalPrice = addDecimals(
         Number(itemsPrice) +
         Number(shippingPrice) +
         Number(taxPrice)
-    ).toFixed(2);
+    );
 
     useEffect(() => {
         if (!cart.shippingAddress.address) {
@@ -37,25 +40,42 @@ const PlaceOrderScreen = () => {
 
     const placeOrderHandler = async () => {
         try {
-            // 1. Get Token Manually (Safety Check)
-            const storedUser = JSON.parse(localStorage.getItem('userInfo'));
-            const token = storedUser ? storedUser.token : null;
-
-            if (!token) {
+            if (!userInfo) {
                 toast.error("Session expired. Please login again.");
                 navigate('/login');
                 return;
             }
 
-            // 2. Send Order to Backend
+            const orderItems = cart.cartItems.map((item) => {
+                const productId = item._id || item.product;
+                return {
+                    _id: productId,
+                    name: item.name,
+                    qty: item.qty,
+                    image: item.image,
+                    price: Number(item.price),
+                    product: productId,
+                };
+            });
+
+            const invalidItem = orderItems.find(
+                (item) => !item.name || !item.image || !item.product || !item._id || Number.isNaN(item.price)
+            );
+
+            if (invalidItem) {
+                toast.error('Cart has invalid items. Please remove and add them again.');
+                return;
+            }
+
+            // Send Order to Backend (cookie-based auth)
             const res = await fetch('/api/orders', {
                 method: 'POST',
+                credentials: 'include',
                 headers: {
                     'Content-Type': 'application/json',
-                    Authorization: `Bearer ${token}`,
                 },
                 body: JSON.stringify({
-                    orderItems: cart.cartItems,
+                    orderItems,
                     shippingAddress: cart.shippingAddress,
                     paymentMethod: cart.paymentMethod,
                     itemsPrice: itemsPrice,

@@ -1,10 +1,11 @@
-const asyncHandler = require('express-async-handler');
-const Order = require('../models/orderModel');
+import asyncHandler from 'express-async-handler';
+import Order from '../models/orderModel.js'; // 🟢 Fixed typo and added .js extension
+import Product from '../models/product.js'; // 🟢 Added for getDashboardSummary
 
 // @desc    Create new order
 // @route   POST /api/orders
 // @access  Private
-const addOrderItems = asyncHandler(async (req, res) => {
+export const addOrderItems = asyncHandler(async (req, res) => {
   const {
     orderItems,
     shippingAddress,
@@ -22,7 +23,7 @@ const addOrderItems = asyncHandler(async (req, res) => {
     const order = new Order({
       orderItems: orderItems.map((x) => ({
         ...x,
-        product: x._id,
+        product: x.product || x._id,
         _id: undefined,
       })),
       user: req.user._id,
@@ -42,7 +43,7 @@ const addOrderItems = asyncHandler(async (req, res) => {
 // @desc    Get order by ID
 // @route   GET /api/orders/:id
 // @access  Private
-const getOrderById = asyncHandler(async (req, res) => {
+export const getOrderById = asyncHandler(async (req, res) => {
   const order = await Order.findById(req.params.id).populate('user', 'name email');
 
   if (order) {
@@ -56,7 +57,7 @@ const getOrderById = asyncHandler(async (req, res) => {
 // @desc    Update order to paid
 // @route   PUT /api/orders/:id/pay
 // @access  Private
-const updateOrderToPaid = asyncHandler(async (req, res) => {
+export const updateOrderToPaid = asyncHandler(async (req, res) => {
   const order = await Order.findById(req.params.id);
 
   if (order) {
@@ -66,7 +67,7 @@ const updateOrderToPaid = asyncHandler(async (req, res) => {
       id: req.body.id,
       status: req.body.status,
       update_time: req.body.update_time,
-      email_address: req.body.payer.email_address,
+      email_address: req.body.payer ? req.body.payer.email_address : '',
     };
 
     const updatedOrder = await order.save();
@@ -80,7 +81,7 @@ const updateOrderToPaid = asyncHandler(async (req, res) => {
 // @desc    Update order to delivered
 // @route   PUT /api/orders/:id/deliver
 // @access  Private/Admin
-const updateOrderToDelivered = asyncHandler(async (req, res) => {
+export const updateOrderToDelivered = asyncHandler(async (req, res) => {
   const order = await Order.findById(req.params.id);
 
   if (order) {
@@ -98,7 +99,7 @@ const updateOrderToDelivered = asyncHandler(async (req, res) => {
 // @desc    Get all orders
 // @route   GET /api/orders
 // @access  Private/Admin
-const getOrders = asyncHandler(async (req, res) => {
+export const getOrders = asyncHandler(async (req, res) => {
   const orders = await Order.find({}).populate('user', 'id name');
   res.json(orders);
 });
@@ -106,14 +107,14 @@ const getOrders = asyncHandler(async (req, res) => {
 // @desc    Get dashboard summary data
 // @route   GET /api/orders/summary
 // @access  Private/Admin
-const getDashboardSummary = asyncHandler(async (req, res) => {
+export const getDashboardSummary = asyncHandler(async (req, res) => {
   const orders = await Order.find({});
   const numOrders = orders.length;
   const numProducts = await Product.countDocuments();
   
   const totalSales = orders.reduce((acc, item) => acc + item.totalPrice, 0);
   
-  // Assuming a 20% profit margin for your project demonstration
+  // 20% profit margin for your FlitCode demonstration
   const totalProfit = totalSales * 0.20;
 
   res.json({
@@ -124,11 +125,10 @@ const getDashboardSummary = asyncHandler(async (req, res) => {
   });
 });
 
-module.exports = {
-  addOrderItems,
-  getOrderById,
-  updateOrderToPaid,
-  updateOrderToDelivered, // 👈 New Function Added!
-  getOrders,
-  getDashboardSummary,
-};
+// @desc    Get logged in user orders
+// @route   GET /api/orders/myorders
+// @access  Private
+export const getMyOrders = asyncHandler(async (req, res) => {
+  const orders = await Order.find({ user: req.user._id }); 
+  res.json(orders);
+});

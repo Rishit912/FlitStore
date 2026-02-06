@@ -33,12 +33,9 @@ const OrderScreen = () => {
   useEffect(() => {
     const fetchOrderAndConfig = async () => {
       try {
-        const storedUser = JSON.parse(localStorage.getItem('userInfo'));
-        const token = storedUser ? storedUser.token : null;
-
-        const res = await fetch(`/api/orders/${orderId}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+                const res = await fetch(`/api/orders/${orderId}`, {
+                    credentials: 'include',
+                });
         const data = await res.json();
         
         if (!res.ok) throw new Error(data.message);
@@ -80,18 +77,22 @@ const OrderScreen = () => {
         toast.error("Razorpay Key not found.");
         return;
     }
+    const totalAmount = Number(order?.totalPrice);
+    if (!totalAmount || Number.isNaN(totalAmount)) {
+        toast.error('Invalid order amount.');
+        return;
+    }
     const res = await loadRazorpayScript();
     if (!res) {
         toast.error('Razorpay SDK failed to load.');
         return;
     }
-    const storedUser = JSON.parse(localStorage.getItem('userInfo'));
-    const token = storedUser ? storedUser.token : null;
     try {
         const result = await fetch('/api/razorpay', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-            body: JSON.stringify({ amount: order.totalPrice }),
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ amount: totalAmount }),
         });
         const data = await result.json();
         if (!data) return;
@@ -99,14 +100,25 @@ const OrderScreen = () => {
         const options = {
             key: razorpayKeyId,
             amount: data.amount,
-            currency: data.currency,
+            currency: data.currency || 'INR',
             name: "FlitStore",
             description: `Payment for Order #${order._id}`,
             order_id: data.id, 
+            method: {
+                upi: true,
+                card: true,
+                netbanking: true,
+                wallet: true,
+            },
+            prefill: {
+                name: order?.user?.name,
+                email: order?.user?.email,
+            },
             handler: async function (response) {
                  const payRes = await fetch(`/api/orders/${orderId}/pay`, {
                     method: 'PUT',
-                    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                          credentials: 'include',
+                          headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         id: response.razorpay_payment_id,
                         status: 'COMPLETED',

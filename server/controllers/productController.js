@@ -1,37 +1,58 @@
-const asyncHandler = require('express-async-handler');
-const Product = require('../models/product');
+import asyncHandler from 'express-async-handler';
+import Product from '../models/product.js'; // Ensure the .js extension is present
 
-// @desc    Get all products
+// @desc    Get product name suggestions
+// @route   GET /api/products/suggestions
+// @access  Public
+export const getProductSuggestions = asyncHandler(async (req, res) => {
+  const keyword = req.query.keyword;
+  if (!keyword) return res.json([]);
+
+  const products = await Product.find({
+    name: { $regex: keyword, $options: 'i' }
+  }).select('name').limit(3); // Limit to 5 for a clean UI
+
+  res.json(products);
+});
+
+// @desc    Get all products (with optional search)
 // @route   GET /api/products
 // @access  Public
+export const getProducts = asyncHandler(async (req, res) => {
+  const keyword = req.query.keyword
+    ? {
+        name: {
+          $regex: req.query.keyword,
+          $options: 'i',
+        },
+      }
+    : {};
 
-const getProducts = asyncHandler(async (req, res) => {
-    const products = await Product.find({});
-    res.json(products);
+  const products = await Product.find({ ...keyword });
+  res.json(products);
 });
 
 // @desc    Get single product by ID
 // @route   GET /api/products/:id
 // @access  Public
-const getProductById = asyncHandler(async (req, res) => {
-    const product = await Product.findById(req.params.id);
-    if (product) {
-        res.json(product);
-    } else {
-        res.status(404);
-        throw new Error('Product not found');
-    }
+export const getProductById = asyncHandler(async (req, res) => {
+  const product = await Product.findById(req.params.id);
+  if (product) {
+    res.json(product);
+  } else {
+    res.status(404);
+    throw new Error('Product not found');
+  }
 });
-
 
 // @desc    Delete a product
 // @route   DELETE /api/products/:id
 // @access  Private/Admin
-const deleteProduct = asyncHandler(async (req, res) => {
+export const deleteProduct = asyncHandler(async (req, res) => {
   const product = await Product.findById(req.params.id);
 
   if (product) {
-    await Product.deleteOne({ _id: product._id }); // This command removes it from DB
+    await Product.deleteOne({ _id: product._id });
     res.json({ message: 'Product removed' });
   } else {
     res.status(404);
@@ -42,7 +63,7 @@ const deleteProduct = asyncHandler(async (req, res) => {
 // @desc    Create a product (Sample)
 // @route   POST /api/products
 // @access  Private/Admin
-const createProduct = asyncHandler(async (req, res) => {
+export const createProduct = asyncHandler(async (req, res) => {
   const product = new Product({
     name: 'Sample name',
     price: 0,
@@ -62,7 +83,7 @@ const createProduct = asyncHandler(async (req, res) => {
 // @desc    Update a product
 // @route   PUT /api/products/:id
 // @access  Private/Admin
-const updateProduct = asyncHandler(async (req, res) => {
+export const updateProduct = asyncHandler(async (req, res) => {
   const { name, price, description, image, brand, category, countInStock } = req.body;
 
   const product = await Product.findById(req.params.id);
@@ -84,12 +105,26 @@ const updateProduct = asyncHandler(async (req, res) => {
   }
 });
 
-// Add updateProduct to your module.exports at the bottom
 
-module.exports = {
-    getProducts,
-    getProductById,
-    deleteProduct,
-    createProduct,
-    updateProduct,
-};
+// @desc    Create new review
+// @route   POST /api/products/:id/reviews
+export const createProductReview = asyncHandler(async (req, res) => {
+  const { rating, comment } = req.body;
+  const product = await Product.findById(req.params.id);
+
+  if (product) {
+    const review = {
+      name: req.user.name,
+      rating: Number(rating),
+      comment,
+      user: req.user._id,
+    };
+
+    product.reviews.push(review); // Add review to the array
+    product.numReviews = product.reviews.length;
+    product.rating = product.reviews.reduce((acc, item) => item.rating + acc, 0) / product.reviews.length;
+
+    await product.save();
+    res.status(201).json({ message: 'Review added' });
+  }
+});

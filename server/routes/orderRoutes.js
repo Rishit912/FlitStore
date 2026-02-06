@@ -1,24 +1,30 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const {
+
+// 🟢 Using ES Module imports with .js extensions
+import {
   addOrderItems,
   getOrderById,
   updateOrderToPaid,
-  updateOrderToDelivered, // 👈 Import it
+  updateOrderToDelivered,
   getOrders,
-} = require('../controllers/orderController');
-const { protect } = require('../middleware/authMiddleware');
+  getMyOrders, // 🟢 Ensure this is imported for the Profile History
+} from '../controllers/orderController.js';
 
-// Route for getting all orders (List)
+import { protect, admin } from '../middleware/authMiddleware.js';
+
+// --- USER ROUTES ---
+// 🟢 This MUST be above /:id to avoid 404/ID conflicts
+router.route('/myorders').get(protect, getMyOrders);
+
+// --- BASE ROUTES ---
 router.route('/')
-    .post(protect, addOrderItems)
-    .get(protect, getOrders);
+  .post(protect, addOrderItems)
+  .get(protect, admin, getOrders); // Admin can view all orders
 
-// Route for "Mark as Delivered" 
-// (I kept it protected but removed 'admin' check so it works for you immediately)
-router.route('/:id/deliver').put(protect, updateOrderToDelivered); 
-
+// --- SPECIFIC ORDER ROUTES ---
 router.route('/:id').get(protect, getOrderById);
 router.route('/:id/pay').put(protect, updateOrderToPaid);
+router.route('/:id/deliver').put(protect, admin, updateOrderToDelivered);
 
-module.exports = router;
+export default router; // 🟢 Proper ES Module export

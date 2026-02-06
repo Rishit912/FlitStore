@@ -4,7 +4,7 @@ const users = require('./data/users');
 const products = require('./data/products');
 const User = require('./models/User');
 const Product = require('./models/Product');
-const Order = require('./models/Order');
+const Order = require('./models/orderModel');
 const connectDB = require('./config/db');
 
 dotenv.config();
@@ -17,16 +17,18 @@ const importData = async () => {
         await Product.deleteMany();
         await User.deleteMany();
 
-        // 2. Create Users Loop (CORRECT WAY)
-        // We use a loop and User.create() so the encryption hook fires for each one
+        // 2. Create Users Loop
         const createdUsers = [];
         for (const user of users) {
-            const newUser = await User.create(user);
+            // Spreading the user data and forcing verification to true
+            const newUser = await User.create({
+                ...user,
+                isVerified: true 
+            });
             createdUsers.push(newUser);
         }
 
         // 3. Get the Admin User's ID
-        // The first user in your users.js file is the Admin
         const adminUser = createdUsers[0]._id;
 
         // 4. Map the products to that Admin
@@ -37,7 +39,7 @@ const importData = async () => {
         // 5. Insert Products
         await Product.insertMany(sampleProducts);
 
-        console.log('✅ Data Imported Successfully (With Encryption)!');
+        console.log('✅ Data Imported Successfully (Verified & Encrypted)!');
         process.exit();
     } catch (error) {
         console.error(`❌ Error: ${error.message}`);

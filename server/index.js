@@ -1,99 +1,95 @@
-const express = require('express');
-const dotenv = require('dotenv');
-const cors = require('cors');
-const connectDB = require('./config/db');
-const productRoutes = require('./routes/productRoutes');
-const cookieParser = require('cookie-parser');
-const userRoutes = require('./routes/userRoutes');
-const orderRoutes = require('./routes/orderRoutes'); 
+import express from 'express';
+import path from 'path';
+import dotenv from 'dotenv';
+import cors from 'cors';
+import cookieParser from 'cookie-parser';
+import Razorpay from 'razorpay';
+import shortid from 'shortid';
+import connectDB from './config/db.js';
 
-const Razorpay = require('razorpay');
-const shortid = require('shortid');
-const uploadRoutes = require('./routes/uploadRoutes');
-const path = require('path');
+// Route Imports
+import productRoutes from './routes/productRoutes.js';
+import userRoutes from './routes/userRoutes.js';
+import orderRoutes from './routes/orderRoutes.js';
+import uploadRoutes from './routes/uploadRoutes.js'; 
 
-// Load environment variables and connect to the database
+// Import Error Middleware (Only once!)
+import { notFound, errorHandler } from './middleware/errorMiddleware.js';
+
 dotenv.config();
-
-// Connect to the database
 connectDB();
 
-// Initialize Express app
 const app = express();
 
-// Middleware
-app.use(cors());
+// --- 1. MIDDLEWARE SETUP ---
+// CORS must be configured for cookies/credentials
+app.use(cors({
+  origin: 'http://localhost:5173', 
+  credentials: true,               
+}));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-app.get('/', (req, res) => {
-  res.send('api is running....');
-});
-
-// Initialize Razorpay Instance
-const razorpay = new Razorpay({
-    key_id: process.env.RAZORPAY_KEY_ID,
-    key_secret: process.env.RAZORPAY_KEY_SECRET,
-});
-
-// --- MOUNT ROUTES ---
+// --- 2. MOUNT ROUTES ---
 app.use('/api/products', productRoutes);
 app.use('/api/users', userRoutes);
-app.use('/api/orders', orderRoutes); 
+app.use('/api/orders', orderRoutes);
+app.use('/api/upload', uploadRoutes);
 
-
-const folder = path.resolve();
-app.use('/uploads', express.static(path.join(folder, '/uploads')));
-// server.js
-app.use('/uploads', express.static(path.join(path.resolve(), '/uploads')));
-app.use('/api/uploads', uploadRoutes); // Add this line to mount the upload routes
-
-// --- CONFIG ROUTES (Send Keys to Frontend) ---
-
-// 1. PayPal Config
+// --- 3. EXTERNAL SERVICES & CONFIG ---
 app.get('/api/config/paypal', (req, res) => {
   res.send({ clientId: process.env.PAYPAL_CLIENT_ID });
 });
 
-// 👇 2. RAZORPAY CONFIG (THIS WAS MISSING!) 👇
 app.get('/api/config/razorpay', (req, res) => {
   res.send({ key: process.env.RAZORPAY_KEY_ID });
 });
-// 👆 THIS FIXES THE 404 ERROR 👆
 
-
-// --- PAYMENT ROUTES ---
-
-// Route to create a Razorpay Order
-app.post('/api/razorpay', async (req, res) => {
-    const payment_capture = 1;
-    const amount = req.body.amount; // Amount from frontend
-    const currency = 'INR';
-
-    const options = {
-        amount: amount * 100, // Convert Rupee to Paise
-        currency,
-        receipt: shortid.generate(),
-        payment_capture,
-    };
-
-    try {
-        const response = await razorpay.orders.create(options);
-        console.log("Razorpay Order Created:", response); // Log for debugging
-        res.json({
-            id: response.id,
-            currency: response.currency,
-            amount: response.amount,
-        });
-    } catch (error) {
-        console.log(error);
-        res.status(500).send('Unable to create Razorpay order');
-    }
+const razorpay = new Razorpay({
+  key_id: process.env.RAZORPAY_KEY_ID,
+  key_secret: process.env.RAZORPAY_KEY_SECRET,
 });
 
-// Start the server
-const PORT = process.env.PORT || 5000; // Changed default to 5000 to match your frontend proxy
+app.post('/api/razorpay', async (req, res) => {
+  const amount = Number(req.body.amount);
+  if (!amount || Number.isNaN(amount)) {
+    return res.status(400).send('Invalid amount');
+  }
+
+  const options = {
+    amount: Math.round(amount * 100), 
+    currency: 'INR',
+    receipt: shortid.generate(),
+    payment_capture: 1,
+  };
+
+  try {
+    const response = await razorpay.orders.create(options);
+    res.json({
+      id: response.id,
+      currency: response.currency,
+      amount: response.amount,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Unable to create Razorpay order');
+  }
+});
+const __dirname = path.resolve();
+// '../uploads' tells Node to go up one folder, then look for 'uploads'
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+app.get('/', (req, res) => {
+  res.send('API is running....');
+});
+
+// --- 5. ERROR HANDLING (MUST BE LAST) ---
+
+app.use(notFound);
+app.use(errorHandler);
+
+const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });

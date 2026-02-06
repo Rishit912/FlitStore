@@ -1,13 +1,12 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose'; // 🟢 Changed from require
 
 // Define the review schema
-
 const reviewSchema = new mongoose.Schema({
     name: {
         type: String,
         required: true
     },
-    rating : {
+    rating: {
         type: Number,
         required: true,
         default: 0
@@ -26,8 +25,7 @@ const reviewSchema = new mongoose.Schema({
 });
 
 
-// the main Product schema
-
+// The main Product schema
 const ProductSchema = new mongoose.Schema({
     user: {
         type: mongoose.Schema.Types.ObjectId,
@@ -57,10 +55,10 @@ const ProductSchema = new mongoose.Schema({
         required: true
     },
 
-    // array of reviews added to the product
+    // Array of reviews added to the product
     reviews: [reviewSchema],
 
-    //automatically calculated fields
+    // Automatically calculated fields
     rating: {
         type: Number,
         required: true,
@@ -85,4 +83,6 @@ const ProductSchema = new mongoose.Schema({
     timestamps: true
 });
 
-module.exports = mongoose.model('Product', ProductSchema);
+const Product = mongoose.model('Product', ProductSchema);
+
+export default Product; // 🟢 Changed from module.exports

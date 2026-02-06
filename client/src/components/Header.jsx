@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { logout } from '../slices/authSlice'; 
+import SearchBox from './SearchBox'; // 🟢 Added this import
 
 const Header = () => {
   const [userDropdown, setUserDropdown] = useState(false);
@@ -10,6 +11,8 @@ const Header = () => {
   const { userInfo } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
+  const hideSearchBox = location.pathname === '/payment';
 
   const logoutHandler = () => {
     dispatch(logout());
@@ -24,16 +27,22 @@ const Header = () => {
         
         {/* Branding */}
         <Link to="/" className="text-2xl font-black text-blue-600 tracking-tighter">
-          FLIT<span className="text-gray-900">CODE</span>
+          Flit<span className="text-gray-900">Store</span>
           {userInfo && userInfo.isAdmin && (
-            <span className="ml-2 text-xs bg-black text-white px-2 py-1 rounded uppercase tracking-widest">Admin</span>
+            <span className="ml-2 text-[10px] bg-black text-white px-2 py-0.5 rounded uppercase tracking-widest align-middle">Admin</span>
           )}
         </Link>
 
+        {/* Search */}
+        {!hideSearchBox && (
+          <div className="hidden md:flex flex-grow justify-center">
+            <SearchBox />
+          </div>
+        )}
+
         {/* Dynamic Navigation */}
-        <div className="flex items-center space-x-8">
+        <div className="flex items-center space-x-6">
           
-          {/* 1. CART: Only show if NOT an Admin */}
           {(!userInfo || !userInfo.isAdmin) && (
             <Link to="/cart" className="text-gray-600 hover:text-blue-600 font-semibold transition flex items-center gap-2">
               <i className="fas fa-shopping-cart"></i>
@@ -41,30 +50,44 @@ const Header = () => {
             </Link>
           )}
 
-          {/* 2. ADMIN DASHBOARD: Only show if Admin */}
+          {/* 2. ADMIN DASHBOARD MENU */}
           {userInfo && userInfo.isAdmin && (
-            <div className="relative">
+            <div className="relative group"> 
+              {/* Added 'group' for hover support as a backup */}
               <button 
                 onClick={() => setAdminDropdown(!adminDropdown)}
-                className="flex items-center gap-2 text-gray-900 font-bold hover:text-blue-600 transition focus:outline-none"
+                className="flex items-center gap-2 text-gray-900 font-bold hover:text-blue-600 transition focus:outline-none py-2"
               >
                 Dashboard
                 <i className={`fas fa-caret-down transition-transform ${adminDropdown ? 'rotate-180' : ''}`}></i>
               </button>
 
               {adminDropdown && (
-                <div className="absolute right-0 mt-3 w-56 bg-white border border-gray-100 rounded-xl shadow-2xl py-2 z-50">
-                  <div className="px-4 py-2 text-xs font-bold text-gray-400 uppercase">Management</div>
+                <div 
+                  className="absolute right-0 mt-1 w-56 bg-white border border-gray-100 rounded-xl shadow-2xl py-2 z-50"
+                  onMouseLeave={() => setAdminDropdown(false)} // Closes safely when mouse leaves
+                >
+                  <div className="px-4 py-2 text-[10px] font-black text-gray-400 uppercase tracking-widest">Management</div>
+                  
+                  <Link 
+                    to="/admin/userlist" 
+                    className="block px-4 py-3 text-sm font-bold text-gray-700 hover:bg-blue-50 hover:text-blue-600 border-l-4 border-transparent hover:border-blue-600"
+                    onClick={() => setAdminDropdown(false)}
+                  >
+                    User Management
+                  </Link>
+
                   <Link 
                     to="/admin/productlist" 
-                    className="block px-4 py-3 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 border-l-4 border-transparent hover:border-blue-600"
+                    className="block px-4 py-3 text-sm font-bold text-gray-700 hover:bg-blue-50 hover:text-blue-600 border-l-4 border-transparent hover:border-blue-600"
                     onClick={() => setAdminDropdown(false)}
                   >
                     Product Inventory
                   </Link>
+
                   <Link 
                     to="/admin/orderlist" 
-                    className="block px-4 py-3 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 border-l-4 border-transparent hover:border-blue-600"
+                    className="block px-4 py-3 text-sm font-bold text-gray-700 hover:bg-blue-50 hover:text-blue-600 border-l-4 border-transparent hover:border-blue-600"
                     onClick={() => setAdminDropdown(false)}
                   >
                     Order Records
@@ -74,24 +97,27 @@ const Header = () => {
             </div>
           )}
 
-          {/* 3. USER / LOGIN SECTION */}
-          {userInfo ? (
+          {/* 3. USER SECTION */}
+          {userInfo && userInfo.name ? (
             <div className="relative">
               <button 
                 onClick={() => setUserDropdown(!userDropdown)}
                 className="flex items-center gap-3 bg-gray-50 px-4 py-2 rounded-full border border-gray-200 hover:bg-gray-100 transition focus:outline-none"
               >
-                <div className="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center text-white text-[10px]">
-                  {userInfo.name.charAt(0).toUpperCase()}
+                <div className="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center text-white text-[10px] font-black uppercase">
+                  {userInfo.name.charAt(0)}
                 </div>
-                <span className="text-sm font-bold text-gray-800">{userInfo.name}</span>
+                <span className="text-sm font-bold text-gray-800">{userInfo.name}</span>          
               </button>
 
               {userDropdown && (
-                <div className="absolute right-0 mt-3 w-48 bg-white border border-gray-100 rounded-xl shadow-2xl py-2 z-50">
+                <div 
+                  className="absolute right-0 mt-3 w-48 bg-white border border-gray-100 rounded-xl shadow-2xl py-2 z-50"
+                  onMouseLeave={() => setUserDropdown(false)}
+                >
                   <Link 
                     to="/profile" 
-                    className="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50"
+                    className="block px-4 py-3 text-sm font-bold text-gray-700 hover:bg-gray-50"
                     onClick={() => setUserDropdown(false)}
                   >
                     User Profile
@@ -99,17 +125,21 @@ const Header = () => {
                   <hr className="my-1 border-gray-100" />
                   <button 
                     onClick={logoutHandler}
-                    className="w-full text-left px-4 py-3 text-sm text-red-600 hover:bg-red-50 font-bold"
+                    className="w-full text-left px-4 py-3 text-sm text-red-600 hover:bg-red-50 font-black uppercase tracking-tighter"
                   >
                     Sign Out
                   </button>
                 </div>
               )}
+
+
             </div>
+
+            
           ) : (
             <Link 
               to="/login" 
-              className="bg-gray-900 text-white px-8 py-2.5 rounded-full font-bold hover:bg-black transition transform hover:scale-105 active:scale-95 shadow-lg"
+              className="bg-gray-900 text-white px-8 py-2.5 rounded-full font-bold hover:bg-black transition shadow-lg"
             >
               Sign In
             </Link>

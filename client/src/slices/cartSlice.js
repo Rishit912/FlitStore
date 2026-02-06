@@ -1,9 +1,33 @@
 import { createSlice } from '@reduxjs/toolkit';
 
+const sanitizeCartState = (state) => {
+  if (!state || !Array.isArray(state.cartItems)) {
+    return { cartItems: [], shippingAddress: {}, paymentMethod: 'PayPal' };
+  }
+
+  const cartItems = state.cartItems
+    .filter((item) => item && item._id && item.name && item.image)
+    .map((item) => ({
+      _id: item._id,
+      name: item.name,
+      image: item.image,
+      price: Number(item.price),
+      countInStock: item.countInStock,
+      qty: item.qty,
+    }))
+    .filter((item) => !Number.isNaN(item.price));
+
+  return {
+    cartItems,
+    shippingAddress: state.shippingAddress || {},
+    paymentMethod: state.paymentMethod || 'PayPal',
+  };
+};
+
 // 1. Load EVERYTHING from 'cart' (Items, Address, Payment)
 // If 'cart' doesn't exist, start with empty arrays/objects
 const initialState = localStorage.getItem('cart')
-  ? JSON.parse(localStorage.getItem('cart'))
+  ? sanitizeCartState(JSON.parse(localStorage.getItem('cart')))
   : { cartItems: [], shippingAddress: {}, paymentMethod: 'PayPal' };
 
 const cartSlice = createSlice({
@@ -13,18 +37,26 @@ const cartSlice = createSlice({
     // Action 1: Add Item
     addToCart: (state, action) => {
       const item = action.payload;
+      const normalizedItem = {
+        _id: item._id,
+        name: item.name,
+        image: item.image,
+        price: Number(item.price),
+        countInStock: item.countInStock,
+        qty: item.qty,
+      };
 
       // Check if item already exists based on ID
-      const existItem = state.cartItems.find((x) => x._id === item._id);
+      const existItem = state.cartItems.find((x) => x._id === normalizedItem._id);
 
       if (existItem) {
         // If it exists, update it (e.g. new quantity)
         state.cartItems = state.cartItems.map((x) =>
-          x._id === existItem._id ? item : x
+          x._id === existItem._id ? normalizedItem : x
         );
       } else {
         // If not, add new item
-        state.cartItems = [...state.cartItems, item];
+        state.cartItems = [...state.cartItems, normalizedItem];
       }
 
       // Save entire state to 'cart'

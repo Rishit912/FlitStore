@@ -1,18 +1,31 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
 
-const {
-    registerUser,
-    authUser,
-} = require('../controllers/userController');
-const { protect } = require('../middleware/authMiddleware');    
+// Import using destructuring and the .js extension
+import {
+  authUser,
+  registerUser,
+  verifyOTP,
+  logoutUser,
+  resendOTP,
+  getUserProfile,
+  updateUserProfile,
+  getUsers,
+  deleteUser,
+} from '../controllers/userController.js';
 
+import { protect, admin } from '../middleware/authMiddleware.js';
 
-
-// Route to authenticate user and get token
+// Define your routes
 router.post('/login', authUser);
-// Route to register a new user
-router.post('/', registerUser);
+router.post('/verify', verifyOTP);
+router.post('/resend-otp', resendOTP);
+router.route('/').post(registerUser).get(protect, admin, getUsers);
+router.post('/logout', logoutUser);
+router
+  .route('/profile')
+  .get(protect, getUserProfile)
+  .put(protect, updateUserProfile);
+router.route('/:id').delete(protect, admin, deleteUser);
 
-
-module.exports = router;
+export default router;

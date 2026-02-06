@@ -6,18 +6,21 @@ const users = [
     email: 'admin@example.com',
     password: 'password123', // We will encrypt this in the script
     isAdmin: true,
+    isVerified: true, // Admin is already verified
   },
   {
     name: 'John Doe',
     email: 'john@example.com',
     password: 'password123',
     isAdmin: false,
+    isVerified: false,
   },
   {
     name: 'Jane Smith',
     email: 'jane@example.com',
     password: 'password123',
     isAdmin: false,
+    isVerified: false,
   },
 ];
 
