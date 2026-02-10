@@ -1,0 +1,149 @@
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:wght@500;700;900&family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+  --fs-ink: #0f172a;
+  --fs-muted: #5b6475;
+  --fs-accent: #0ea5e9;
+  --fs-accent-strong: #0369a1;
+  --fs-warm: #f97316;
+  --fs-sand: #f8fafc;
+  --fs-veil: rgba(255, 255, 255, 0.78);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Space Grotesk', system-ui, -apple-system, Segoe UI, sans-serif;
+  color: var(--fs-ink);
+  background-color: #f7f4ef;
+  background-image:
+    radial-gradient(circle at 15% 12%, rgba(14, 165, 233, 0.18), transparent 45%),
+    radial-gradient(circle at 85% 18%, rgba(249, 115, 22, 0.18), transparent 40%),
+    linear-gradient(180deg, #fbf7f0 0%, #f5f1ea 40%, #f8fafc 100%);
+  min-height: 100vh;
+}
+
+h1, h2, h3, h4 {
+  font-family: 'Fraunces', serif;
+}
+
+a {
+  color: inherit;
+}
+
+::selection {
+  background: rgba(14, 165, 233, 0.2);
+}
+
+@layer components {
+  .fs-container {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+
+  .fs-section {
+    @apply py-10 sm:py-14;
+  }
+
+  .fs-card {
+    @apply bg-white/80 backdrop-blur border border-white/60 shadow-[0_24px_80px_-60px_rgba(15,23,42,0.7)] rounded-2xl;
+  }
+
+  .fs-pill {
+    @apply inline-flex items-center gap-2 px-3 py-1 rounded-full text-[11px] font-semibold uppercase tracking-[0.2em] bg-white/70 border border-white/70;
+  }
+
+  .fs-button {
+    @apply inline-flex items-center justify-center rounded-full font-semibold tracking-tight transition duration-200;
+  }
+
+  .fs-button-primary {
+    @apply fs-button bg-sky-600 text-white hover:bg-sky-700 shadow-lg shadow-sky-200/60;
+  }
+
+  .fs-button-ghost {
+    @apply fs-button border border-slate-200 bg-white/80 hover:bg-white;
+  }
+
+  .fs-input {
+    @apply w-full rounded-2xl border border-slate-200 bg-white/90 px-4 py-3 text-sm shadow-inner shadow-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-300;
+  }
+
+  .fs-tag {
+    @apply inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-500;
+  }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+@keyframes reveal {
+  0% { opacity: 0; transform: translateY(16px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes arrow-slide {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(6px); }
+}
+
+.float-slow {
+  animation: float 8s ease-in-out infinite;
+}
+
+.reveal-up {
+  animation: reveal 0.6s ease-out both;
+}
+
+.arrow-slide {
+  animation: arrow-slide 1.6s ease-in-out infinite;
+}
+
+.reveal-on-scroll {
+  opacity: 0;
+  transition: opacity 0.35s ease, transform 0.35s ease;
+}
+
+.reveal-from-up {
+  transform: translateY(12px);
+}
+
+.reveal-from-down {
+  transform: translateY(-12px);
+}
+
+.reveal-from-left {
+  transform: translateX(-14px);
+}
+
+.reveal-from-right {
+  transform: translateX(14px);
+}
+
+.reveal-on-scroll.is-visible {
+  opacity: 1;
+  transform: translateX(0) translateY(0);
+}
+
+/* Custom Scrollbar for Pro Feel */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+::-webkit-scrollbar-thumb {
+  background: #b3b7c2;
+  border-radius: 6px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #8f96a5;
+}
