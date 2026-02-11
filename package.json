@@ -1,0 +1,21 @@
+{
+  "name": "flitstore-root",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "cloudinary": "^2.9.0",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.6",
+    "dotenv": "^17.2.3",
+    "express": "^5.2.1",
+    "express-async-handler": "^1.2.0",
+    "jsonwebtoken": "^9.0.3",
+    "mongoose": "^9.1.5",
+    "multer": "^2.0.2",
+    "nodemailer": "^7.0.13",
+    "razorpay": "^2.9.6",
+    "shortid": "^2.2.17",
+    "twilio": "^5.12.0"
+  }
+}
