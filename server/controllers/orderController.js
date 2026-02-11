@@ -1,7 +1,7 @@
 import asyncHandler from 'express-async-handler';
 import crypto from 'crypto';
 import Order from '../models/orderModel.js';
-import Product from '../models/product.js';
+import Product from '../models/Product.js';
 import User from '../models/User.js';
 import sendEmail from '../utils/sendEmail.js'; // 🟢 Import the utility
 

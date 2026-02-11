@@ -26,7 +26,7 @@ import {
   deleteUser,
 } from '../controllers/userController.js';
 
-import { protect, admin } from '../middleware/authMiddleware.js';
+import { protect, admin } from '../middleware/authmiddleware.js';
 
 // Define your routes
 router.post('/login', authUser);

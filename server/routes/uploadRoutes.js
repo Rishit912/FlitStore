@@ -1,8 +1,9 @@
-const path = require('path');
-const { Readable } = require('stream');
-const express = require('express');
-const multer = require('multer');
-const cloudinary = require('cloudinary').v2;
+import path from 'path';
+import { Readable } from 'stream';
+import express from 'express';
+import multer from 'multer';
+import { v2 as cloudinary } from 'cloudinary';
+
 const router = express.Router();
 
 cloudinary.config({
@@ -53,4 +54,4 @@ router.post('/', upload.single('image'), (req, res) => {
   Readable.from(req.file.buffer).pipe(uploadStream);
 });
 
-module.exports = router;
+export default router;

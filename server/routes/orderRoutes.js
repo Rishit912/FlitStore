@@ -18,7 +18,7 @@ import {
   getAiDiscountSummary,
 } from '../controllers/orderController.js';
 
-import { protect, admin } from '../middleware/authMiddleware.js';
+import { protect, admin } from '../middleware/authmiddleware.js';
 
 // --- USER ROUTES ---
 // 🟢 This MUST be above /:id to avoid 404/ID conflicts

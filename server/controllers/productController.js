@@ -1,5 +1,5 @@
 import asyncHandler from 'express-async-handler';
-import Product from '../models/product.js'; // Ensure the .js extension is present
+import Product from '../models/Product.js';
 
 // @desc    Get product name suggestions
 // @route   GET /api/products/suggestions
