@@ -31,16 +31,16 @@ const  PaymentScreen = () => {
 
     return (
         <div className="flex justify-center items-center min-h-[50vh] mt-10">
-      <div className="w-full max-w-lg bg-white p-8 rounded-xl shadow-lg border border-gray-200">
-        <h1 className="text-3xl font-bold mb-6 text-gray-800">Payment Method</h1>
+      <div className="w-full max-w-lg app-card p-8">
+        <h1 className="text-3xl font-bold mb-6 text-foreground">Payment Method</h1>
         
         <form onSubmit={submitHandler}>
           <div className="mb-6">
-            <label className="block text-gray-700 font-medium mb-4">Select Method</label>
+            <label className="block text-muted font-medium mb-4">Select Method</label>
             
             <div className="space-y-3">
               {/* Option: PayPal */}
-              <div className="flex items-center p-4 border rounded-lg hover:bg-gray-50 cursor-pointer">
+              <div className="flex items-center p-4 border border-app rounded-lg hover:bg-surface-2 cursor-pointer">
                 <input
                   type="radio"
                   id="PayPal"
@@ -48,9 +48,9 @@ const  PaymentScreen = () => {
                   value="PayPal"
                   checked={paymentMethod === 'PayPal'}
                   onChange={(e) => setPaymentMethod(e.target.value)}
-                  className="w-5 h-5 text-blue-600 focus:ring-blue-500 border-gray-300"
+                  className="w-5 h-5 text-primary focus:ring-[color:var(--primary)] border-app"
                 />
-                <label htmlFor="PayPal" className="ml-3 text-lg text-gray-700 font-medium cursor-pointer">
+                <label htmlFor="PayPal" className="ml-3 text-lg text-foreground font-medium cursor-pointer">
                   PayPal or Credit Card
                 </label>
               </div>
@@ -59,7 +59,7 @@ const  PaymentScreen = () => {
 
           <button
             type="submit"
-            className="w-full bg-blue-600 text-white py-3 rounded-lg font-bold hover:bg-blue-700 transition-colors"
+            className="w-full app-btn py-3"
           >
             Continue
           </button>

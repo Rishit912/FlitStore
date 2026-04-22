@@ -1,98 +1,106 @@
 import { useState } from 'react';
+import AccountTypeStep from '../components/AccountTypeStep';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import axios from 'axios';
-import { useDispatch } from 'react-redux';
-import { setCredentials } from '../slices/authSlice';
 
 const RegisterScreen = () => {
+  const [step, setStep] = useState(1);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [accountType, setAccountType] = useState('');
 
   const navigate = useNavigate();
-  const dispatch = useDispatch();
 
-  const submitHandler = async (e) => {
+
+  const handleBasicSubmit = (e) => {
     e.preventDefault();
-
     if (password !== confirmPassword) {
       toast.error('Passwords do not match');
       return;
     }
+    setStep(2);
+  };
 
+  const handleRegister = async () => {
     try {
-      // 1. Call the backend Register API
-      const res = await axios.post('/api/users', { name, email, password });
-
-      // 2. Save full data (including name) so Header.jsx doesn't crash
-      dispatch(setCredentials({ ...res.data })); 
-      
+      const res = await axios.post('/api/users', { name, email, password, isRetailer: accountType === 'retailer' });
+      sessionStorage.setItem('pendingVerificationEmail', res.data.email);
       toast.info('OTP sent to your email! Please verify.');
-      
-      // 3. Move to the verification page
-      navigate('/verify');
+      navigate('/verify', { state: { email: res.data.email, fromRegister: true } });
     } catch (err) {
-      // Improved error handling to show the actual backend message
-      toast.error(err?.response?.data?.message || err.message || 'Error occurred');
+      const msg = err?.response?.data?.message || err.message || 'Error occurred';
+      if (msg.toLowerCase().includes('user already exists') || msg.toLowerCase().includes('duplicate')) {
+        toast.error('An account with this email already exists. Please login or use a different email.');
+      } else {
+        toast.error(msg);
+      }
     }
   };
 
   return (
-    <div className='flex justify-center items-center min-h-screen bg-gray-50 p-4'>
-      <form onSubmit={submitHandler} className='bg-white p-8 rounded-lg shadow-md w-full max-w-md'>
-        <h1 className='text-2xl font-bold mb-6 text-center text-gray-800'>Create Account</h1>
-        
-        <div className='space-y-4'>
-          <input
-            type='text'
-            placeholder='Enter Name'
-            className='w-full p-3 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:outline-none'
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            required
+    <div className='flex justify-center items-center min-h-screen bg-gradient-to-br from-white via-blue-50 to-blue-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 p-4'>
+      <div className='app-card p-8 w-full max-w-md'>
+        {step === 1 && (
+          <form onSubmit={handleBasicSubmit} className='space-y-4'>
+            <div className='flex flex-col items-center mb-6'>
+                <div className='relative mb-2'>
+                  <div className='absolute -inset-1 rounded-full blur-xl opacity-70 bg-gradient-to-br from-orange-300 to-fuchsia-400' aria-hidden></div>
+                  <div className='relative w-20 h-20 flex items-center justify-center rounded-full shadow-2xl bg-gradient-to-br from-primary to-accent-3 ring-2 ring-white/30'>
+                    <span className='text-3xl font-extrabold text-white tracking-widest select-none'>FS</span>
+                  </div>
+                </div>
+              <h1 className='text-2xl font-bold text-center text-foreground'>Create Account</h1>
+            </div>
+            <input
+              type='text'
+              placeholder='Enter Name'
+              className='w-full app-input'
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
+            />
+            <input
+              type='email'
+              placeholder='Enter Email'
+              className='w-full app-input'
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+            <input
+              type='password'
+              placeholder='Enter Password'
+              className='w-full app-input'
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+            <input
+              type='password'
+              placeholder='Confirm Password'
+              className='w-full app-input'
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              required
+            />
+            <button type='submit' className='w-full app-btn'>Next</button>
+            <div className='mt-6 text-center text-sm text-muted'>
+              Already have an account? <Link to='/login' className='text-primary font-bold hover:underline ml-1'>Login</Link>
+            </div>
+          </form>
+        )}
+        {step === 2 && (
+          <AccountTypeStep
+            accountType={accountType}
+            setAccountType={setAccountType}
+            onNext={handleRegister}
+            onBack={() => setStep(1)}
           />
-
-          <input
-            type='email'
-            placeholder='Enter Email'
-            className='w-full p-3 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:outline-none'
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-
-          <input
-            type='password'
-            placeholder='Enter Password'
-            className='w-full p-3 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:outline-none'
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-
-          <input
-            type='password'
-            placeholder='Confirm Password'
-            className='w-full p-3 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:outline-none'
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            required
-          />
-
-          <button 
-            type='submit' 
-            className='w-full bg-blue-600 text-white p-3 rounded font-bold hover:bg-blue-700 transition duration-200'
-          >
-            Register & Send OTP
-          </button>
-        </div>
-
-        <div className='mt-6 text-center text-sm text-gray-600'>
-          Already have an account? <Link to='/login' className='text-blue-600 font-bold hover:underline ml-1'>Login</Link>
-        </div>
-      </form>
+        )}
+      </div>
     </div>
   );
 };

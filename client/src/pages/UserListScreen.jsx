@@ -32,11 +32,12 @@ const UserListScreen = () => {
   };
 
   return (
-    <div className="p-8">
-      <h1 className="text-2xl font-bold mb-4">Users</h1>
-      <table className="w-full bg-white shadow-md rounded">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <h1 className="text-2xl font-bold mb-4 text-foreground">Users</h1>
+      <div className="app-card overflow-hidden">
+      <table className="w-full">
         <thead>
-          <tr className="bg-gray-200 text-left">
+          <tr className="bg-surface-2 text-left text-muted text-xs uppercase">
             <th className="p-3">ID</th>
             <th className="p-3">NAME</th>
             <th className="p-3">EMAIL</th>
@@ -45,20 +46,20 @@ const UserListScreen = () => {
             <th className="p-3">ACTIONS</th>
           </tr>
         </thead>
-        <tbody>
+        <tbody className="divide-y divide-[color:var(--border)]">
           {users.map((user) => (
-            <tr key={user._id} className="border-b">
-              <td className="p-3 text-sm">{user._id}</td>
-              <td className="p-3">{user.name}</td>
-              <td className="p-3">{user.email}</td>
+            <tr key={user._id} className="hover:bg-surface-2/60">
+              <td className="p-3 text-sm text-muted font-mono">{user._id}</td>
+              <td className="p-3 text-foreground">{user.name}</td>
+              <td className="p-3 text-muted">{user.email}</td>
               <td className="p-3">
                 {user.isAdmin ? <FaCheck className="text-green-500" /> : <FaTimes className="text-red-500" />}
               </td>
               <td className="p-3">
-                {user.isVerified ? <span className="text-blue-500">Yes</span> : <span className="text-gray-400">No</span>}
+                {user.isVerified ? <span className="text-primary">Yes</span> : <span className="text-muted">No</span>}
               </td>
               <td className="p-3">
-                <button onClick={() => deleteHandler(user._id)} className="text-red-600 hover:text-red-800">
+                <button onClick={() => deleteHandler(user._id)} className="text-red-500 hover:text-red-400">
                   <FaTrash />
                 </button>
               </td>
@@ -66,6 +67,7 @@ const UserListScreen = () => {
           ))}
         </tbody>
       </table>
+      </div>
     </div>
   );
 };

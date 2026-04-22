@@ -12,7 +12,12 @@ import {
   updateUserProfile,
   getUsers,
   deleteUser,
+  requestPasswordReset,
+  resetPassword,
 } from '../controllers/userController.js';
+// Password reset
+router.post('/reset-password', requestPasswordReset);
+router.post('/reset-password/:token', resetPassword);
 
 import { protect, admin } from '../middleware/authMiddleware.js';
 

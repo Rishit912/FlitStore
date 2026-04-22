@@ -68,17 +68,17 @@ const ProductListScreen = () => {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8 mt-16">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 mt-16">
       
       {/* --- LIVE STATUS BAR --- */}
-      <div className="flex flex-col md:flex-row justify-between items-center mb-6 bg-blue-600 p-4 rounded-2xl shadow-lg text-white">
+      <div className="flex flex-col md:flex-row justify-between items-center mb-6 app-card p-4">
         <div className="flex items-center gap-3">
           <div className="w-3 h-3 bg-green-400 rounded-full animate-ping"></div>
-          <span className="text-xs font-black uppercase tracking-widest">System Live: Admin Dashboard</span>
+          <span className="text-xs font-black uppercase tracking-widest text-foreground">System Live: Admin Dashboard</span>
         </div>
         <div className="text-right mt-2 md:mt-0">
-          <span className="text-xs font-bold opacity-80 mr-4 italic">Profit calculated at:</span>
-          <span className="font-mono font-black bg-blue-700 px-3 py-1 rounded-lg text-sm">
+          <span className="text-xs font-bold text-muted mr-4 italic">Profit calculated at:</span>
+          <span className="font-mono font-black bg-surface-2 px-3 py-1 rounded-lg text-sm text-foreground">
             {formattedDate} | {formattedTime}
           </span>
         </div>
@@ -87,40 +87,40 @@ const ProductListScreen = () => {
       {/* --- DASHBOARD SUMMARY SECTION --- */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
         {/* Orders Card */}
-        <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100">
+        <div className="app-card p-6">
           <div className="flex justify-between items-start">
-            <div className="bg-blue-50 p-3 rounded-2xl text-blue-600">
+            <div className="bg-surface-2 p-3 rounded-2xl text-primary">
               <i className="fas fa-shopping-bag text-xl"></i>
             </div>
-            <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Active Orders</span>
+            <span className="text-[10px] font-black text-muted uppercase tracking-widest">Active Orders</span>
           </div>
           <div className="mt-4">
-            <h3 className="text-2xl font-black text-gray-900">{products ? products.length : 0}</h3>
-            <p className="text-gray-400 text-xs mt-1 font-medium">Sales this month</p>
+            <h3 className="text-2xl font-black text-foreground">{products ? products.length : 0}</h3>
+            <p className="text-muted text-xs mt-1 font-medium">Sales this month</p>
           </div>
         </div>
 
         {/* Revenue Card */}
-        <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100">
+        <div className="app-card p-6">
           <div className="flex justify-between items-start">
             <div className="bg-emerald-50 p-3 rounded-2xl text-emerald-600">
               <i className="fas fa-indian-rupee-sign text-xl"></i>
             </div>
-            <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Total Revenue</span>
+            <span className="text-[10px] font-black text-muted uppercase tracking-widest">Total Revenue</span>
           </div>
           <div className="mt-4">
-            <h3 className="text-2xl font-black text-gray-900">₹{totalRevenue.toLocaleString()}</h3>
-            <p className="text-gray-400 text-xs mt-1 font-medium">Gross earnings</p>
+            <h3 className="text-2xl font-black text-foreground">₹{totalRevenue.toLocaleString()}</h3>
+            <p className="text-muted text-xs mt-1 font-medium">Gross earnings</p>
           </div>
         </div>
 
         {/* Profit Card */}
-        <div className="bg-gray-900 p-6 rounded-3xl shadow-xl border border-gray-800 transition hover:scale-[1.02]">
+        <div className="bg-foreground p-6 rounded-3xl shadow-app border border-app transition hover:scale-[1.02]">
           <div className="flex justify-between items-start">
             <div className="bg-emerald-500/10 p-3 rounded-2xl text-emerald-400">
               <i className="fas fa-chart-line text-xl"></i>
             </div>
-            <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Net Profit</span>
+            <span className="text-[10px] font-black text-muted uppercase tracking-widest">Net Profit</span>
           </div>
           <div className="mt-4">
             <h3 className="text-2xl font-black text-white">₹{totalProfit.toLocaleString()}</h3>
@@ -129,16 +129,16 @@ const ProductListScreen = () => {
         </div>
 
         {/* Inventory Card */}
-        <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100">
+        <div className="app-card p-6">
           <div className="flex justify-between items-start">
             <div className="bg-orange-50 p-3 rounded-2xl text-orange-600">
               <i className="fas fa-boxes-stacked text-xl"></i>
             </div>
-            <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Stock Level</span>
+            <span className="text-[10px] font-black text-muted uppercase tracking-widest">Stock Level</span>
           </div>
           <div className="mt-4">
-            <h3 className="text-2xl font-black text-gray-900">{products ? products.length : 0} Items</h3>
-            <p className="text-gray-400 text-xs mt-1 font-medium">Live in Store</p>
+            <h3 className="text-2xl font-black text-foreground">{products ? products.length : 0} Items</h3>
+            <p className="text-muted text-xs mt-1 font-medium">Live in Store</p>
           </div>
         </div>
       </div>
@@ -146,47 +146,47 @@ const ProductListScreen = () => {
       {/* --- HEADER SECTION --- */}
       <div className="flex flex-col md:flex-row justify-between items-center mb-10 gap-4">
         <div>
-          <h1 className="text-3xl font-black text-gray-900 tracking-tight uppercase">
-            Product <span className="text-blue-600">Inventory</span>
+          <h1 className="text-3xl font-black text-foreground tracking-tight uppercase">
+            Product <span className="text-primary">Inventory</span>
           </h1>
-          <p className="text-gray-500 text-sm font-medium">Manage your store products and pricing</p>
+          <p className="text-muted text-sm font-medium">Manage your store products and pricing</p>
         </div>
 
         <button
           onClick={createProductHandler}
-          className="bg-black text-white px-8 py-4 rounded-full font-black text-xs tracking-widest uppercase flex items-center gap-3 hover:bg-blue-600 transition-all duration-300 shadow-xl active:scale-95"
+          className="app-btn px-8 py-4 rounded-full text-xs tracking-widest uppercase flex items-center gap-3 shadow-app active:scale-95"
         >
           <i className="fas fa-plus text-[10px]"></i>
           <span>Create New Product</span>
         </button>
       </div>
 
-      {loadingDelete && <div className="text-blue-500 font-bold mb-4 animate-pulse italic">Processing Delete...</div>}
+      {loadingDelete && <div className="text-primary font-bold mb-4 animate-pulse italic">Processing Delete...</div>}
       
       {/* --- TABLE SECTION --- */}
-      <div className="bg-white rounded-[2rem] shadow-2xl overflow-hidden border border-gray-100">
+      <div className="app-card rounded-[2rem] overflow-hidden">
         <table className="w-full text-left border-collapse">
-          <thead className="bg-gray-50 border-b border-gray-200">
+          <thead className="bg-surface-2 border-b border-app">
             <tr>
-              <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">ID</th>
-              <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Name</th>
-              <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Price</th>
-              <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Category</th>
-              <th className="px-8 py-5 text-center text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Actions</th>
+              <th className="px-8 py-5 text-[10px] font-black text-muted uppercase tracking-[0.2em]">ID</th>
+              <th className="px-8 py-5 text-[10px] font-black text-muted uppercase tracking-[0.2em]">Name</th>
+              <th className="px-8 py-5 text-[10px] font-black text-muted uppercase tracking-[0.2em]">Price</th>
+              <th className="px-8 py-5 text-[10px] font-black text-muted uppercase tracking-[0.2em]">Category</th>
+              <th className="px-8 py-5 text-center text-[10px] font-black text-muted uppercase tracking-[0.2em]">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100">
+          <tbody className="divide-y divide-[color:var(--border)]">
             {products && products.map((product) => (
-              <tr key={product._id} className="hover:bg-blue-50/30 transition-colors group">
-                <td className="px-8 py-5 text-xs font-mono text-gray-400">{product._id.substring(0, 8)}</td>
-                <td className="px-8 py-5 text-sm font-bold text-gray-900">{product.name}</td>
-                <td className="px-8 py-5 text-sm font-black text-blue-600">₹{product.price.toLocaleString()}</td>
-                <td className="px-8 py-5 text-xs font-bold text-gray-500 uppercase tracking-widest">{product.category}</td>
+              <tr key={product._id} className="hover:bg-surface-2/60 transition-colors group">
+                <td className="px-8 py-5 text-xs font-mono text-muted">{product._id.substring(0, 8)}</td>
+                <td className="px-8 py-5 text-sm font-bold text-foreground">{product.name}</td>
+                <td className="px-8 py-5 text-sm font-black text-primary">₹{product.price.toLocaleString()}</td>
+                <td className="px-8 py-5 text-xs font-bold text-muted uppercase tracking-widest">{product.category}</td>
                 <td className="px-8 py-5 text-center">
                   <div className="flex justify-center gap-3">
                     <Link 
                       to={`/admin/product/${product._id}/edit`}
-                      className="bg-gray-100 text-gray-900 px-5 py-2 rounded-xl text-[10px] font-black tracking-widest hover:bg-black hover:text-white transition-all shadow-sm"
+                      className="bg-surface-2 text-foreground px-5 py-2 rounded-xl text-[10px] font-black tracking-widest hover:bg-foreground hover:text-white transition-all shadow-sm"
                     >
                       EDIT
                     </Link>

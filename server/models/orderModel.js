@@ -13,11 +13,23 @@ const orderSchema = mongoose.Schema(
                 qty: { type: Number, required: true },
                 image: { type: String, required: true },
                 price: { type: Number, required: true },
+                originalPrice: { type: Number, default: 0 },
+                isHaggled: { type: Boolean, default: false },
                 product: {
                     type: mongoose.Schema.Types.ObjectId,
                     required: true,
                     ref: 'Product',
                 },
+                fulfillmentStatus: {
+                    type: String,
+                    enum: ['pending', 'packed', 'shipped', 'out_for_delivery', 'delivered', 'cancelled'],
+                    default: 'pending',
+                },
+                packedAt: { type: Date },
+                shippedAt: { type: Date },
+                itemDeliveredAt: { type: Date },
+                courierPartner: { type: String, default: '' },
+                trackingNumber: { type: String, default: '' },
             },
         ],
         shippingAddress: {
@@ -58,6 +70,11 @@ const orderSchema = mongoose.Schema(
             type: Number,
             required: true,
             default: 0.0,
+        },
+        discount: {
+            type: Number,
+            required: true,
+            default: 0,
         },
         isPaid: {
             type: Boolean,

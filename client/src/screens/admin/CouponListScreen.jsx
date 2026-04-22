@@ -38,29 +38,30 @@ const CouponListScreen = () => {
   };
 
   return (
-    <div className="container mx-auto p-6">
-      <h1 className="text-2xl font-black uppercase mb-6">Coupon Management</h1>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <h1 className="text-2xl font-black uppercase mb-6 text-foreground">Coupon Management</h1>
       
       {/* Create Form */}
-      <form onSubmit={submitHandler} className="bg-white p-6 rounded-2xl shadow-sm mb-10 flex gap-4 items-end">
+      <form onSubmit={submitHandler} className="app-card p-6 mb-10 flex gap-4 items-end">
         <div className="flex-1">
-          <label className="text-[10px] font-black uppercase text-gray-400">Code</label>
-          <input type="text" value={name} onChange={(e) => setName(e.target.value)} className="w-full border p-2 rounded-lg" placeholder="FLIT10" required />
+          <label className="text-[10px] font-black uppercase text-muted">Code</label>
+          <input type="text" value={name} onChange={(e) => setName(e.target.value)} className="w-full app-input" placeholder="FLIT10" required />
         </div>
         <div className="w-32">
-          <label className="text-[10px] font-black uppercase text-gray-400">Discount %</label>
-          <input type="number" value={discount} onChange={(e) => setDiscount(e.target.value)} className="w-full border p-2 rounded-lg" required />
+          <label className="text-[10px] font-black uppercase text-muted">Discount %</label>
+          <input type="number" value={discount} onChange={(e) => setDiscount(e.target.value)} className="w-full app-input" required />
         </div>
         <div className="flex-1">
-          <label className="text-[10px] font-black uppercase text-gray-400">Expiry Date</label>
-          <input type="date" value={expiry} onChange={(e) => setExpiry(e.target.value)} className="w-full border p-2 rounded-lg" required />
+          <label className="text-[10px] font-black uppercase text-muted">Expiry Date</label>
+          <input type="date" value={expiry} onChange={(e) => setExpiry(e.target.value)} className="w-full app-input" required />
         </div>
-        <button className="bg-blue-600 text-white p-3 rounded-lg"><FaPlus /></button>
+        <button className="app-btn p-3 rounded-lg"><FaPlus /></button>
       </form>
 
       {/* Coupon List */}
-      <table className="w-full bg-white rounded-2xl overflow-hidden shadow-sm">
-        <thead className="bg-gray-50 border-b">
+      <div className="app-card overflow-hidden">
+      <table className="w-full">
+        <thead className="bg-surface-2 border-b border-app">
           <tr>
             <th className="p-4 text-left text-xs font-black uppercase">Code</th>
             <th className="p-4 text-left text-xs font-black uppercase">Discount</th>
@@ -70,10 +71,10 @@ const CouponListScreen = () => {
         </thead>
         <tbody>
           {coupons.map((c) => (
-            <tr key={c._id} className="border-b last:border-0">
-              <td className="p-4 font-bold">{c.name}</td>
-              <td className="p-4">{c.discount}%</td>
-              <td className="p-4">{new Date(c.expiry).toLocaleDateString()}</td>
+            <tr key={c._id} className="border-b border-app last:border-0">
+              <td className="p-4 font-bold text-foreground">{c.name}</td>
+              <td className="p-4 text-muted">{c.discount}%</td>
+              <td className="p-4 text-muted">{new Date(c.expiry).toLocaleDateString()}</td>
               <td className="p-4">
                 <button onClick={() => deleteHandler(c._id)} className="text-red-500"><FaTrash /></button>
               </td>
@@ -81,6 +82,7 @@ const CouponListScreen = () => {
           ))}
         </tbody>
       </table>
+      </div>
     </div>
   );
 };

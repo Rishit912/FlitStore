@@ -12,7 +12,7 @@ const VerifyScreen = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { state } = useLocation();
-  const email = state?.email; // This gets the email from LoginScreen navigate state
+  const email = state?.email || sessionStorage.getItem('pendingVerificationEmail');
 
   const { userInfo } = useSelector((state) => state.auth);
 
@@ -36,6 +36,7 @@ const VerifyScreen = () => {
       
       // THIS IS THE FINAL STEP: Save to Redux and LocalStorage
       dispatch(setCredentials({ ...res.data }));
+      sessionStorage.removeItem('pendingVerificationEmail');
       toast.success('Verified successfully!');
       navigate('/');
     } catch (err) {
@@ -47,17 +48,17 @@ const VerifyScreen = () => {
 
   return (
     <div className="flex justify-center items-center h-[80vh] px-4">
-      <div className="w-full max-w-md bg-white p-8 rounded-xl shadow-lg border border-gray-100">
-        <h1 className="text-3xl font-bold mb-2 text-center text-gray-800">Verify OTP</h1>
-        <p className="text-center text-gray-500 mb-6">Sent to: <span className="font-bold text-gray-700">{email}</span></p>
+      <div className="w-full max-w-md app-card p-8">
+        <h1 className="text-3xl font-bold mb-2 text-center text-foreground">Verify OTP</h1>
+        <p className="text-center text-muted mb-6">Sent to: <span className="font-bold text-foreground">{email}</span></p>
         
         <form onSubmit={submitHandler} className="space-y-5">
           <div>
-            <label className="block text-gray-600 font-semibold mb-2">Enter 6-Digit Code</label>
+            <label className="block text-muted font-semibold mb-2">Enter 6-Digit Code</label>
             <input
               type="text"
               placeholder="123456"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg text-center text-2xl tracking-widest focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full app-input text-center text-2xl tracking-widest"
               value={otp}
               onChange={(e) => setOtp(e.target.value)}
               required
@@ -67,7 +68,7 @@ const VerifyScreen = () => {
             disabled={isLoading}
             type="submit"
             className={`w-full py-3 rounded-lg font-bold text-white transition-all ${
-              isLoading ? 'bg-blue-400' : 'bg-blue-600 hover:bg-blue-700'
+              isLoading ? 'bg-blue-400' : 'app-btn'
             }`}
           >
             {isLoading ? 'Verifying...' : 'Verify & Login'}

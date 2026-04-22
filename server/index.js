@@ -14,6 +14,7 @@ import orderRoutes from './routes/orderRoutes.js';
 import razorpayRoutes from './routes/razorpayRoutes.js';
 import uploadRoutes from './routes/uploadRoutes.js'; 
 import couponRoutes from './routes/couponRoutes.js';
+import bannerRoutes from './routes/bannerRoutes.js';
 
 // Import Error Middleware (Only once!)
 import { notFound, errorHandler } from './middleware/errorMiddleware.js';
@@ -41,6 +42,7 @@ app.use('/api/orders', orderRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/razorpay', razorpayRoutes);
 app.use('/api/coupons', couponRoutes); // 🟢 This fixes the "Not Found" error
+app.use('/api/banner', bannerRoutes);
 
 // --- 3. EXTERNAL SERVICES & CONFIG ---
 app.get('/api/config/paypal', (req, res) => {

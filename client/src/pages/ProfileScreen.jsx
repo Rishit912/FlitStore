@@ -4,29 +4,30 @@ import { toast } from 'react-toastify';
 import axios from 'axios';
 import { setCredentials } from '../slices/authSlice';
 import { Link } from 'react-router-dom';
+import { FaUserEdit, FaHistory, FaEye } from 'react-icons/fa';
 
 const ProfileScreen = () => {
+  const dispatch = useDispatch();
+  const { userInfo } = useSelector((state) => state.auth);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [isRetailer, setIsRetailer] = useState(false);
   const [orders, setOrders] = useState([]);
   const [loadingOrders, setLoadingOrders] = useState(true);
-
-  const dispatch = useDispatch();
-  const { userInfo } = useSelector((state) => state.auth);
 
   useEffect(() => {
     if (userInfo) {
       setName(userInfo.name);
       setEmail(userInfo.email);
-      fetchMyOrders(); // 🟢 Fetch history when component loads
+      setIsRetailer(!!userInfo.isRetailer);
+      fetchMyOrders();
     }
   }, [userInfo]);
 
   const fetchMyOrders = async () => {
     try {
-      // 🟢 Calls the getMyOrders controller we updated in the backend
       const { data } = await axios.get('/api/orders/myorders');
       setOrders(data);
       setLoadingOrders(false);
@@ -42,11 +43,9 @@ const ProfileScreen = () => {
       toast.error('Passwords do not match');
       return;
     }
-
     try {
-      const updateData = { name, email };
+      const updateData = { name, email, isRetailer };
       if (password) updateData.password = password;
-
       const res = await axios.put('/api/users/profile', updateData);
       dispatch(setCredentials({ ...res.data }));
       toast.success('Profile updated successfully');
@@ -58,113 +57,107 @@ const ProfileScreen = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto mt-10 px-4 flex flex-col lg:flex-row gap-10">
+    <div className="max-w-7xl mx-auto mt-20 px-4 py-10 flex flex-col lg:flex-row gap-10">
       
       {/* LEFT: UPDATE PROFILE FORM */}
-      <div className="lg:w-1/3 bg-white p-6 shadow-xl rounded-2xl border border-gray-100 h-fit">
-        <h1 className="text-2xl font-black mb-6 text-gray-800 uppercase tracking-tighter">User Profile</h1>
-        <form onSubmit={submitHandler} className="space-y-4">
+      <div className="lg:w-1/3 bg-surface p-8 rounded-[2rem] shadow-xl border border-app h-fit">
+        <div className="flex items-center gap-3 mb-6">
+            <div className="bg-blue-600 p-3 rounded-2xl text-white shadow-lg"><FaUserEdit /></div>
+            <h1 className="text-2xl font-black uppercase tracking-tighter">My Account</h1>
+        </div>
+        <form onSubmit={submitHandler} className="space-y-5">
           <div>
-            <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-1">Full Name</label>
-            <input
-              type="text"
-              className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              required
-            />
+            <label className="block text-[10px] font-black text-muted uppercase tracking-widest mb-1">Full Name</label>
+            <input type="text" className="w-full p-4 bg-surface-2 border border-transparent rounded-2xl focus:bg-surface focus:border-primary outline-none transition-all font-bold" value={name} onChange={(e) => setName(e.target.value)} required />
           </div>
 
           <div>
-            <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-1">Email Address</label>
-            <input
-              type="email"
-              className="w-full p-3 border border-gray-200 rounded-xl bg-gray-50 text-gray-500 cursor-not-allowed"
-              value={email}
-              disabled 
-            />
+            <label className="block text-[10px] font-black text-muted uppercase tracking-widest mb-1">Email (Locked)</label>
+            <input type="email" className="w-full p-4 bg-surface-2 border border-transparent rounded-2xl text-muted cursor-not-allowed font-bold" value={email} disabled />
           </div>
 
           <div>
-            <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-1">New Password</label>
-            <input
-              type="password"
-              className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
+            <label className="block text-[10px] font-black text-muted uppercase tracking-widest mb-1">New Password</label>
+            <input type="password" placeholder="Leave blank to keep same" className="w-full p-4 bg-surface-2 border border-transparent rounded-2xl focus:bg-surface focus:border-primary outline-none transition-all font-bold" value={password} onChange={(e) => setPassword(e.target.value)} />
           </div>
 
           <div>
-            <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-1">Confirm Password</label>
-            <input
-              type="password"
-              className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-            />
+            <label className="block text-[10px] font-black text-muted uppercase tracking-widest mb-1">Confirm Password</label>
+            <input type="password" className="w-full p-4 bg-surface-2 border border-transparent rounded-2xl focus:bg-surface focus:border-primary outline-none transition-all font-bold" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} />
           </div>
 
-          <button 
-            type="submit" 
-            className="w-full bg-blue-600 text-white p-4 rounded-xl font-black uppercase tracking-widest hover:bg-blue-700 transition shadow-lg active:scale-95"
-          >
-            Update Account
+          <button type="submit" className="app-btn w-full py-4">
+            Save Changes
           </button>
+          <div className="flex items-center gap-3">
+            <input
+              type="checkbox"
+              id="isRetailer"
+              checked={isRetailer}
+              onChange={e => setIsRetailer(e.target.checked)}
+              className="w-5 h-5 accent-blue-600"
+            />
+            <label htmlFor="isRetailer" className="text-sm font-bold text-foreground select-none">
+              I want to become a Retailer (Sell on FlitStore)
+            </label>
+          </div>
         </form>
       </div>
 
-      {/* RIGHT: ORDER & PAYMENT HISTORY */}
+      {/* RIGHT: ORDER HISTORY */}
       <div className="lg:w-2/3">
-        <h2 className="text-2xl font-black mb-6 text-gray-800 uppercase tracking-tighter">Past Orders & Payments</h2>
+        <div className="flex items-center gap-3 mb-6">
+            <div className="bg-surface-2 p-3 rounded-2xl text-foreground"><FaHistory /></div>
+            <h2 className="text-2xl font-black uppercase tracking-tighter text-foreground">Purchase History</h2>
+        </div>
         
         {loadingOrders ? (
-          <div className="flex justify-center py-10">
-            <div className="animate-spin h-8 w-8 border-4 border-blue-600 border-t-transparent rounded-full"></div>
-          </div>
+          <div className="flex justify-center py-20 animate-pulse font-bold text-muted uppercase tracking-widest">Loading Records...</div>
         ) : orders.length === 0 ? (
-          <div className="bg-gray-50 p-10 rounded-2xl text-center border-2 border-dashed border-gray-200">
-             <p className="text-gray-400 font-bold uppercase tracking-widest">No history found</p>
-             <Link to="/" className="text-blue-600 text-sm font-bold hover:underline">Start Shopping</Link>
+          <div className="bg-surface-2 p-20 rounded-[2.5rem] text-center border-2 border-dashed border-app">
+              <p className="text-muted font-bold uppercase tracking-widest mb-4">You haven't placed any orders yet</p>
+              <Link to="/" className="app-btn px-8 py-3 text-xs">Start Shopping</Link>
           </div>
         ) : (
-          <div className="overflow-hidden bg-white shadow-xl rounded-2xl border border-gray-100">
+          <div className="overflow-hidden bg-surface rounded-[2.5rem] shadow-xl border border-app">
             <table className="w-full text-left">
-              <thead className="bg-gray-50 text-[10px] font-black uppercase text-gray-400 tracking-widest">
-                <tr>
-                  <th className="px-6 py-4">ID</th>
-                  <th className="px-6 py-4">Date</th>
-                  <th className="px-6 py-4">Total</th>
-                  <th className="px-6 py-4">Paid</th>
-                  <th className="px-6 py-4">Status</th>
-                  <th className="px-6 py-4"></th>
+              <thead>
+                <tr className="bg-surface-2 text-[10px] font-black uppercase text-muted tracking-widest">
+                  <th className="px-8 py-5">Order ID</th>
+                  <th className="px-8 py-5">Date</th>
+                  <th className="px-8 py-5">Total</th>
+                  <th className="px-8 py-5">Payment</th>
+                  <th className="px-8 py-5">Status</th>
+                  <th className="px-8 py-5 text-right">Action</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
+              <tbody className="divide-y divide-app">
                 {orders.map((order) => (
-                  <tr key={order._id} className="hover:bg-blue-50/30 transition">
-                    <td className="px-6 py-4 font-mono text-xs text-gray-400">{order._id.substring(0, 10)}...</td>
-                    <td className="px-6 py-4 text-sm text-gray-600">{order.createdAt.substring(0, 10)}</td>
-                    <td className="px-6 py-4 text-sm font-black text-gray-900">₹{order.totalPrice}</td>
-                    <td className="px-6 py-4">
+                  <tr key={order._id} className="hover:bg-surface-2/50 transition-colors group">
+                    <td className="px-8 py-6 font-mono text-xs text-muted">{order._id.substring(0, 8)}...</td>
+                    <td className="px-8 py-6 text-sm font-medium text-muted">{new Date(order.createdAt).toLocaleDateString()}</td>
+                    <td className="px-8 py-6 text-sm font-black text-foreground">₹{order.totalPrice.toLocaleString()}</td>
+                    <td className="px-8 py-6">
                       {order.isPaid ? (
-                        <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-tighter">
-                          {order.paidAt.substring(0, 10)}
+                        <span className="text-green-600 font-black text-[10px] uppercase tracking-tighter flex items-center gap-1">
+                          <div className="w-1 h-1 bg-green-600 rounded-full"></div> Verified
                         </span>
                       ) : (
-                        <span className="bg-red-100 text-red-600 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-tighter">Not Paid</span>
+                        <span className="text-red-400 font-black text-[10px] uppercase tracking-tighter flex items-center gap-1">
+                           <div className="w-1 h-1 bg-red-400 rounded-full"></div> Unpaid
+                        </span>
                       )}
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-8 py-6">
                       {order.isDelivered ? (
-                        <span className="text-blue-600 text-xs font-black uppercase">Delivered</span>
+                        <span className="bg-blue-50 text-blue-600 px-3 py-1 rounded-full text-[9px] font-black uppercase">Arrived</span>
                       ) : (
-                        <span className="text-gray-400 text-xs font-black uppercase italic">Processing</span>
+                        <span className="bg-orange-50 text-orange-600 px-3 py-1 rounded-full text-[9px] font-black uppercase">In Transit</span>
                       )}
                     </td>
-                    <td className="px-6 py-4">
-                      <Link to={`/order/${order._id}`} className="bg-gray-100 text-gray-900 px-4 py-2 rounded-lg text-xs font-black hover:bg-gray-200 transition">
-                        View
+                    <td className="px-8 py-6 text-right">
+                      <Link to={`/order/${order._id}`} className="inline-flex items-center gap-2 text-xs font-black uppercase text-blue-600 hover:text-blue-800 transition">
+                        View Details <FaEye />
                       </Link>
                     </td>
                   </tr>

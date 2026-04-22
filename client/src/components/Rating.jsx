@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { FaStar, FaStarHalfAlt, FaRegStar } from 'react-icons/fa';
 
-const Rating = ({ value, text, color = '#f8e825', onSelect, interactive = false }) => {
+const Rating = ({ value, text, color = 'var(--accent-1)', onSelect, interactive = false }) => {
   const [hoverValue, setHoverValue] = useState(0);
   const displayValue = interactive && hoverValue ? hoverValue : value;
 
@@ -37,7 +37,7 @@ const Rating = ({ value, text, color = '#f8e825', onSelect, interactive = false 
           )}
         </span>
       ))}
-      <span className='text-xs font-bold text-gray-500 ml-2 uppercase tracking-tighter'>
+      <span className='text-xs font-bold text-muted ml-2 uppercase tracking-tighter'>
         {text && text}
       </span>
     </div>

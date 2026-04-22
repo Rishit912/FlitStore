@@ -13,6 +13,16 @@ const protect = asyncHandler(async (req, res, next) => {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
       // Attach user to request, excluding password
       req.user = await User.findById(decoded.userId).select('-password');
+
+      if (!req.user) {
+        res.status(401);
+        throw new Error('Not authorized, user not found');
+      }
+
+      if (!req.user.isVerified) {
+        res.status(403);
+        throw new Error('Account not verified');
+      }
       next();
     } catch (error) {
       console.error(error);

@@ -12,6 +12,8 @@ const sanitizeCartState = (state) => {
       name: item.name,
       image: item.image,
       price: Number(item.price), 
+      originalPrice: Number(item.originalPrice ?? item.price),
+      isHaggled: Boolean(item.isHaggled),
       countInStock: item.countInStock,
       qty: item.qty,
     }))
@@ -40,6 +42,8 @@ const cartSlice = createSlice({
         name: item.name,
         image: item.image,
         price: Number(item.price),
+        originalPrice: Number(item.originalPrice ?? item.price),
+        isHaggled: Boolean(item.isHaggled),
         countInStock: item.countInStock,
         qty: item.qty,
       };

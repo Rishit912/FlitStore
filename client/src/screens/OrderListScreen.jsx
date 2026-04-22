@@ -26,22 +26,22 @@ const OrderListScreen = () => {
   }, [dispatch, navigate, userInfo]);
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-6 text-gray-800">Order Management (Admin)</h1>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <h1 className="text-3xl font-bold mb-6 text-foreground">Order Management (Admin)</h1>
 
       {loading ? (
         <div className="flex justify-center mt-10">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-blue-600"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-[color:var(--primary)]"></div>
         </div>
       ) : error ? (
         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
             {error}
         </div>
       ) : (
-        <div className="overflow-x-auto bg-white rounded-lg shadow-lg border border-gray-200">
+        <div className="overflow-x-auto app-card">
           <table className="min-w-full leading-normal">
             <thead>
-              <tr className="bg-gray-100 text-gray-600 uppercase text-sm leading-normal">
+              <tr className="bg-surface-2 text-muted uppercase text-sm leading-normal">
                 <th className="py-3 px-6 text-left">Order ID</th>
                 <th className="py-3 px-6 text-left">User</th>
                 <th className="py-3 px-6 text-left">Date</th>
@@ -51,13 +51,13 @@ const OrderListScreen = () => {
                 <th className="py-3 px-6 text-center">Action</th>
               </tr>
             </thead>
-            <tbody className="text-gray-600 text-sm font-light">
+            <tbody className="text-muted text-sm font-light">
               {orders.map((order) => (
-                <tr key={order._id} className="border-b border-gray-200 hover:bg-gray-50 transition">
-                  <td className="py-3 px-6 text-left font-medium">{order._id.substring(0, 10)}...</td>
+                <tr key={order._id} className="border-b border-app hover:bg-surface-2/60 transition">
+                  <td className="py-3 px-6 text-left font-medium text-muted">{order._id.substring(0, 10)}...</td>
                   <td className="py-3 px-6 text-left">{order.user && order.user.name}</td>
                   <td className="py-3 px-6 text-left">{order.createdAt.substring(0, 10)}</td>
-                  <td className="py-3 px-6 text-left font-bold text-gray-800">₹{order.totalPrice}</td>
+                  <td className="py-3 px-6 text-left font-bold text-foreground">₹{order.totalPrice}</td>
                   
                   {/* PAID STATUS */}
                   <td className="py-3 px-6 text-center">
@@ -83,7 +83,7 @@ const OrderListScreen = () => {
 
                   <td className="py-3 px-6 text-center">
                     <Link to={`/order/${order._id}`}>
-                      <button className="bg-gray-800 text-white py-1 px-4 rounded hover:bg-gray-700 transition shadow-sm text-xs uppercase tracking-wide">
+                      <button className="app-btn py-1 px-4 rounded text-xs uppercase tracking-wide">
                         Details
                       </button>
                     </Link>

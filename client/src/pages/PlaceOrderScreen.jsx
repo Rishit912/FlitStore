@@ -7,6 +7,7 @@ import { clearCartItems } from '../slices/cartSlice';
 const PlaceOrderScreen = () => {
     const navigate = useNavigate();
     const dispatch = useDispatch(); // <--- THIS was missing or undefined before
+    const GST_RATE = 0.18;
     
     const cart = useSelector((state) => state.cart);
     const { userInfo } = useSelector((state) => state.auth);
@@ -18,12 +19,18 @@ const PlaceOrderScreen = () => {
         return (Math.round(value * 100) / 100).toFixed(2);
     };
 
+    const actualItemsPrice = addDecimals(
+        cart.cartItems.reduce((acc, item) => acc + Number(item.originalPrice ?? item.price) * Number(item.qty), 0)
+    );
     const itemsPrice = addDecimals(
         cart.cartItems.reduce((acc, item) => acc + Number(item.price) * Number(item.qty), 0)
     );
+    const haggleSavings = addDecimals(Number(actualItemsPrice) - Number(itemsPrice));
 
-    const shippingPrice = addDecimals(Number(itemsPrice) > 100 ? 0 : 10);
-    const taxPrice = addDecimals(Number((0.15 * Number(itemsPrice)).toFixed(2)));
+    const shippingPrice = addDecimals(Number(itemsPrice) > 499 ? 0 : 49);
+    const taxPrice = addDecimals(Number((GST_RATE * Number(itemsPrice)).toFixed(2)));
+    const cgstPrice = addDecimals(Number(taxPrice) / 2);
+    const sgstPrice = addDecimals(Number(taxPrice) / 2);
     const totalPrice = addDecimals(
         Number(itemsPrice) +
         Number(shippingPrice) +
@@ -54,6 +61,8 @@ const PlaceOrderScreen = () => {
                     qty: item.qty,
                     image: item.image,
                     price: Number(item.price),
+                    originalPrice: Number(item.originalPrice ?? item.price),
+                    isHaggled: Boolean(item.isHaggled),
                     product: productId,
                 };
             });
@@ -82,6 +91,13 @@ const PlaceOrderScreen = () => {
                     shippingPrice: shippingPrice,
                     taxPrice: taxPrice,
                     totalPrice: totalPrice,
+                                        discount: Number(cart.discount || 0),
+                                        pricingMeta: {
+                                            actualItemsPrice,
+                                            haggleSavings,
+                                            cgstPrice,
+                                            sgstPrice,
+                                        },
                 }),
             });
 
@@ -102,17 +118,17 @@ const PlaceOrderScreen = () => {
     };
 
     return (
-        <div className="container mx-auto px-4 py-8">
-            <h1 className="text-3xl font-bold mb-8 text-gray-800">Review Order</h1>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <h1 className="text-3xl font-bold mb-8 text-foreground">Review Order</h1>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* LEFT SIDE: Order Details */}
                 <div className="lg:col-span-2 space-y-6">
 
                     {/* Shipping Info */}
-                    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                        <h2 className="text-xl font-bold mb-4 text-gray-700">Shipping</h2>
-                        <p className="text-gray-600">
+                    <div className="app-card p-6">
+                        <h2 className="text-xl font-bold mb-4 text-foreground">Shipping</h2>
+                        <p className="text-muted">
                             <strong>Address: </strong>
                             {cart.shippingAddress.address}, {cart.shippingAddress.city},{' '}
                             {cart.shippingAddress.postalCode}, {cart.shippingAddress.country}
@@ -120,31 +136,36 @@ const PlaceOrderScreen = () => {
                     </div>
 
                     {/* Payment Info */}
-                    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                        <h2 className="text-xl font-bold mb-4 text-gray-700">Payment Method</h2>
-                        <p className="text-gray-600">
+                    <div className="app-card p-6">
+                        <h2 className="text-xl font-bold mb-4 text-foreground">Payment Method</h2>
+                        <p className="text-muted">
                             <strong>Method: </strong>
                             {cart.paymentMethod}
                         </p>
                     </div>
 
                     {/* Order Items */}
-                    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                        <h2 className="text-xl font-bold mb-4 text-gray-700">Order Items</h2>
+                    <div className="app-card p-6">
+                        <h2 className="text-xl font-bold mb-4 text-foreground">Order Items</h2>
                         {cart.cartItems.length === 0 ? (
-                            <p>Your cart is empty</p>
+                            <p className="text-muted">Your cart is empty</p>
                         ) : (
                             <div className="space-y-4">
                                 {cart.cartItems.map((item, index) => (
                                     <div key={index} className="flex items-center justify-between border-b pb-4 last:border-b-0 last:pb-0">
                                         <div className="flex items-center">
                                             <img src={item.image} alt={item.name} className="w-16 h-16 object-cover rounded mr-4" />
-                                            <Link to={`/product/${item._id}`} className="text-blue-600 font-medium hover:underline">
+                                            <Link to={`/product/${item._id}`} className="text-primary font-medium hover:underline">
                                                 {item.name}
                                             </Link>
                                         </div>
-                                        <div className="text-gray-600">
-                                            {item.qty} x ₹{item.price} = <strong>₹{(item.qty * item.price).toFixed(2)}</strong>
+                                        <div className="text-muted">
+                                                                                        {item.qty} x ₹{Number(item.price).toFixed(2)} = <strong>₹{(item.qty * item.price).toFixed(2)}</strong>
+                                                                                        {item.isHaggled && (
+                                                                                            <p className="text-xs text-accent-1 mt-1 font-semibold">
+                                                                                                Haggle Applied (Original ₹{Number(item.originalPrice).toFixed(2)})
+                                                                                            </p>
+                                                                                        )}
                                         </div>
                                     </div>
                                 ))}
@@ -154,23 +175,41 @@ const PlaceOrderScreen = () => {
                 </div>
 
                 {/* RIGHT SIDE: Order Summary */}
-                <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-100 h-fit">
-                    <h2 className="text-2xl font-bold mb-6 text-gray-800">Order Summary</h2>
+                <div className="app-card p-6 h-fit">
+                    <h2 className="text-2xl font-bold mb-6 text-foreground">Order Summary</h2>
 
-                    <div className="space-y-3 text-gray-600">
+                    <div className="space-y-3 text-muted">
                         <div className="flex justify-between">
-                            <span>Items</span>
+                            <span>Actual Item Price</span>
+                            <span>₹{actualItemsPrice}</span>
+                        </div>
+                        {Number(haggleSavings) > 0 && (
+                          <div className="flex justify-between text-accent-1 font-bold">
+                              <span>Haggle Savings</span>
+                              <span>-₹{haggleSavings}</span>
+                          </div>
+                        )}
+                        <div className="flex justify-between">
+                            <span>Taxable Item Value</span>
                             <span>₹{itemsPrice}</span>
                         </div>
                         <div className="flex justify-between">
                             <span>Shipping</span>
-                            <span>₹{shippingPrice}</span>
+                            <span>{Number(shippingPrice) === 0 ? 'Free' : `₹${shippingPrice}`}</span>
                         </div>
                         <div className="flex justify-between">
-                            <span>Tax</span>
+                            <span>CGST (9%)</span>
+                            <span>₹{cgstPrice}</span>
+                        </div>
+                        <div className="flex justify-between">
+                            <span>SGST (9%)</span>
+                            <span>₹{sgstPrice}</span>
+                        </div>
+                        <div className="flex justify-between">
+                            <span>Total GST (18%)</span>
                             <span>₹{taxPrice}</span>
                         </div>
-                        <div className="border-t pt-3 mt-3 flex justify-between text-xl font-bold text-gray-800">
+                        <div className="border-t border-app pt-3 mt-3 flex justify-between text-xl font-bold text-foreground">
                             <span>Total</span>
                             <span>₹{totalPrice}</span>
                         </div>
@@ -178,7 +217,7 @@ const PlaceOrderScreen = () => {
 
                     <button
                         type="button"
-                        className="w-full bg-blue-600 text-white py-3 rounded-lg font-bold hover:bg-blue-700 transition-colors mt-8"
+                        className="w-full app-btn py-3 mt-8"
                         onClick={placeOrderHandler}
                     >
                         Place Order

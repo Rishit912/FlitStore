@@ -1,42 +1,64 @@
+# App button style for visibility in all themes
+.app-btn {
+  background-color: #ff9100;
+  color: #fff;
+  font-weight: bold;
+  border: none;
+  box-shadow: 0 2px 8px 0 rgba(0,0,0,0.04);
+  transition: background 0.2s, color 0.2s;
+}
+.app-btn:hover, .app-btn:focus {
+  background-color: #ffab40;
+  color: #fff;
+}
+body.dark .app-btn {
+  background-color: #ff9100;
+  color: #fff;
+}
+body.dark .app-btn:hover, body.dark .app-btn:focus {
+  background-color: #ffab40;
+  color: #fff;
+}
+
+.app-card {
+  background: #fff;
+  border-radius: 1rem;
+  box-shadow: 0 2px 16px 0 rgba(0,0,0,0.06);
+}
+body.dark .app-card {
+  background: #181c20;
+  box-shadow: 0 2px 16px 0 rgba(0,0,0,0.18);
+}
+# Custom text color utilities for better contrast
+.text-muted {
+  color: #6b7280;
+}
+.text-foreground {
+  color: #18181b;
+}
+.bg-surface {
+  background-color: #fff;
+}
+
+body.dark .text-muted {
+  color: #a1a1aa;
+}
+body.dark .text-foreground {
+  color: #f3f4f6;
+}
+body.dark .bg-surface {
+  background-color: #181c20;
+}
 #root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+  min-height: 100vh;
+  width: 100%;
+  font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+  background: linear-gradient(135deg, #f8fafc 0%, #e0e7ef 100%);
+  color: #222;
+  transition: background 0.3s, color 0.3s;
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
-}
-
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
-}
-
-.card {
-  padding: 2em;
-}
-
-.read-the-docs {
-  color: #888;
+body.dark #root {
+  background: linear-gradient(135deg, #181c20 0%, #23272f 100%);
+  color: #f3f4f6;
 }

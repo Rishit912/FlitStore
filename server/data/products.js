@@ -5,7 +5,7 @@ const products = [
     description:
       'Bluetooth technology lets you connect it with compatible devices wirelessly High-quality AAC audio offers immersive listening experience Built-in microphone allows you to take calls while working',
     brand: 'Apple',
-    category: 'Electronics',
+    category: 'Accessories',
     price: 1499,
     countInStock: 10,
     rating: 4.5,
@@ -41,7 +41,7 @@ const products = [
     description:
       'The ultimate home entertainment center starts with PlayStation. Whether you are into gaming, HD movies, television, music',
     brand: 'Sony',
-    category: 'Electronics',
+    category: 'Gaming',
     price: 39999,
     countInStock: 11,
     rating: 5,
@@ -53,7 +53,7 @@ const products = [
     description:
       'Get a better handle on your games with this Logitech LIGHTSYNC gaming mouse. The six programmable buttons allow customization for a smooth playing experience',
     brand: 'Logitech',
-    category: 'Electronics',
+    category: 'Gaming',
     price: 1299,
     countInStock: 7,
     rating: 3.5,

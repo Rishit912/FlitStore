@@ -5,10 +5,13 @@ const userSchema = mongoose.Schema({
   name: { type: String, required: true },
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
-  isAdmin: { type: Boolean, required: true, default: false },
-  isVerified: { type: Boolean, required: true, default: false },
-  otp: { type: String },
-  otpExpire: { type: Date },
+    isAdmin: { type: Boolean, required: true, default: false },
+    isRetailer: { type: Boolean, required: true, default: false },
+    isVerified: { type: Boolean, required: true, default: false },
+    otp: { type: String },
+    otpExpire: { type: Date },
+    resetPasswordToken: { type: String },
+    resetPasswordExpire: { type: Date },
 }, { timestamps: true });
 
 // Method to compare entered password with hashed password

@@ -35,20 +35,20 @@ const SearchBox = () => {
           value={keyword}
           onChange={(e) => setKeyword(e.target.value)}
           placeholder="Search Products..."
-          className="w-full bg-gray-100 border border-gray-200 rounded-full px-5 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+          className="w-full app-input rounded-full text-sm"
         />
-        <button type="submit" className="p-2 ml-[-40px] text-gray-400 hover:text-blue-600">
+        <button type="submit" className="p-2 ml-[-40px] text-muted hover:text-primary">
           <i className="fas fa-search"></i>
         </button>
       </form>
 
       {/* Suggestion Dropdown */}
       {suggestions.length > 0 && (
-        <div className="absolute top-full left-0 w-full bg-white border border-gray-100 shadow-xl rounded-xl mt-2 py-2 z-50">
+        <div className="absolute top-full left-0 w-full bg-surface border border-app shadow-app rounded-xl mt-2 py-2 z-50">
           {suggestions.map((s) => (
             <div
               key={s._id}
-              className="px-4 py-2 hover:bg-blue-50 cursor-pointer text-sm font-bold text-gray-700"
+              className="px-4 py-2 hover:bg-surface-2 cursor-pointer text-sm font-bold text-foreground"
               onClick={() => {
                 setKeyword(s.name);
                 navigate(`/search/${s.name}`);

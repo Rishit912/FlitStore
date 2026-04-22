@@ -12,6 +12,8 @@
   "dependencies": {
     "@paypal/react-paypal-js": "^8.9.2",
     "@reduxjs/toolkit": "^2.11.2",
+    "@mediapipe/camera_utils": "^0.3.1675466862",
+    "@mediapipe/pose": "^0.5.1675469404",
     "axios": "^1.13.4",
     "chart.js": "^4.5.1",
     "jspdf": "^4.1.0",

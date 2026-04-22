@@ -29,11 +29,54 @@ const OrderScreen = () => {
 
   const { userInfo } = useSelector((state) => state.auth);
 
+  const getPriceBreakdown = (orderData) => {
+    if (!orderData) {
+      return {
+        actualItemsPrice: 0,
+        taxableValue: 0,
+        haggleSavings: 0,
+        gstAmount: 0,
+        cgstAmount: 0,
+        sgstAmount: 0,
+        shippingAmount: 0,
+        couponPercent: 0,
+        couponDiscountAmount: 0,
+        finalPayable: 0,
+      };
+    }
+
+    const actualItemsPrice = orderData.orderItems.reduce(
+      (acc, item) => acc + Number(item.originalPrice || item.price) * Number(item.qty),
+      0
+    );
+    const taxableValue = Number(orderData.itemsPrice || 0);
+    const haggleSavings = Math.max(actualItemsPrice - taxableValue, 0);
+    const gstAmount = Number(orderData.taxPrice || 0);
+    const cgstAmount = gstAmount / 2;
+    const sgstAmount = gstAmount / 2;
+    const shippingAmount = Number(orderData.shippingPrice || 0);
+    const couponPercent = Number(orderData.discount || discount || 0);
+    const couponDiscountAmount = Number(((orderData.totalPrice || 0) * (couponPercent / 100)).toFixed(2));
+    const finalPayable = Number(((orderData.totalPrice || 0) - couponDiscountAmount).toFixed(2));
+
+    return {
+      actualItemsPrice,
+      taxableValue,
+      haggleSavings,
+      gstAmount,
+      cgstAmount,
+      sgstAmount,
+      shippingAmount,
+      couponPercent,
+      couponDiscountAmount,
+      finalPayable,
+    };
+  };
+
   // 🟢 FIXED INVOICE LOGIC
   const downloadInvoice = () => {
     const doc = new jsPDF();
-    const discountAmt = (order.totalPrice * (discount / 100));
-    const finalCalculatedTotal = order.totalPrice - discountAmt;
+    const breakdown = getPriceBreakdown(order);
 
     // Header & Branding
     doc.setFontSize(22);
@@ -55,12 +98,13 @@ const OrderScreen = () => {
     doc.text(`${order.shippingAddress.city} - ${order.shippingAddress.postalCode}`, 14, 68);
 
     // Items Table
-    const tableColumn = ["Product", "Qty", "Price", "Total"];
+    const tableColumn = ["Product", "Qty", "Original", "Deal", "Line Total"];
     const tableRows = order.orderItems.map(item => [
       item.name,
       item.qty,
-      `INR ${item.price}`,
-      `INR ${item.qty * item.price}`
+      `INR ${Number(item.originalPrice || item.price).toFixed(2)}`,
+      `INR ${Number(item.price).toFixed(2)}`,
+      `INR ${(item.qty * item.price).toFixed(2)}`
     ]);
 
     // 🟢 FIXED: Use autoTable(doc, ...) instead of doc.autoTable(...)
@@ -75,16 +119,21 @@ const OrderScreen = () => {
     // Totals Section using lastAutoTable positioning
     const finalY = doc.lastAutoTable.finalY + 10;
     doc.setFontSize(10);
-    doc.text(`Subtotal: INR ${order.itemsPrice}`, 140, finalY);
+    doc.text(`Actual Item Price: INR ${breakdown.actualItemsPrice.toFixed(2)}`, 124, finalY);
+    doc.text(`Haggle Savings: INR ${breakdown.haggleSavings.toFixed(2)}`, 124, finalY + 6);
+    doc.text(`Taxable Value: INR ${breakdown.taxableValue.toFixed(2)}`, 124, finalY + 12);
+    doc.text(`CGST (9%): INR ${breakdown.cgstAmount.toFixed(2)}`, 124, finalY + 18);
+    doc.text(`SGST (9%): INR ${breakdown.sgstAmount.toFixed(2)}`, 124, finalY + 24);
+    doc.text(`Shipping: INR ${breakdown.shippingAmount.toFixed(2)}`, 124, finalY + 30);
     
-    if (discount > 0) {
+    if (breakdown.couponPercent > 0) {
       doc.setTextColor(34, 197, 94);
-      doc.text(`Discount (${discount}%): -INR ${discountAmt.toFixed(2)}`, 140, finalY + 7);
+      doc.text(`Coupon (${breakdown.couponPercent}%): -INR ${breakdown.couponDiscountAmount.toFixed(2)}`, 124, finalY + 36);
     }
 
     doc.setTextColor(0);
     doc.setFontSize(14);
-    doc.text(`Grand Total: INR ${finalCalculatedTotal.toFixed(2)}`, 140, finalY + 16);
+    doc.text(`Final Payable: INR ${breakdown.finalPayable.toFixed(2)}`, 124, finalY + 46);
 
     // Footer
     doc.setFontSize(8);
@@ -227,16 +276,18 @@ const OrderScreen = () => {
     dispatch(deliverOrder(order));
   };
 
-  if (loading) return <div className="text-center mt-20">Loading...</div>;
+  if (loading) return <div className="text-center mt-20 text-muted">Loading...</div>;
   if (!order) return <div className="text-center mt-20 text-red-500">Order Not Found</div>;
 
+  const breakdown = getPriceBreakdown(order);
+
   return (
-    <div className="bg-gray-50 min-h-screen py-10">
-      <div className="container mx-auto px-4 max-w-6xl">
+    <div className="bg-app min-h-screen py-10">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
             <div>
-                <h1 className="text-3xl font-extrabold text-gray-900">Order #{order._id.substring(0, 10)}...</h1>
-                <p className="text-gray-500 text-sm mt-1">Placed on {new Date(order.createdAt).toLocaleDateString()}</p>
+                <h1 className="text-3xl font-extrabold text-foreground">Order #{order._id.substring(0, 10)}...</h1>
+                <p className="text-muted text-sm mt-1">Placed on {new Date(order.createdAt).toLocaleDateString()}</p>
             </div>
             <div className={`mt-4 md:mt-0 px-4 py-2 rounded-full font-bold text-sm ${order.isPaid ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
                 {order.isPaid ? 'Payment Complete' : 'Payment Pending'}
@@ -245,69 +296,85 @@ const OrderScreen = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2 space-y-6">
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-                    <h2 className="text-lg font-semibold text-gray-800 mb-4">Items in Your Order</h2>
-                    <div className="divide-y divide-gray-100">
+                <div className="app-card p-6">
+                  <h2 className="text-lg font-semibold text-foreground mb-4">Items in Your Order</h2>
+                  <div className="divide-y divide-[color:var(--border)]">
                         {order.orderItems.map((item, index) => (
                             <div key={index} className="flex py-4">
-                                <img src={item.image} alt={item.name} className="h-20 w-20 object-cover rounded-md border border-gray-200" />
+                        <img src={item.image} alt={item.name} className="h-20 w-20 object-cover rounded-md border border-app" />
                                 <div className="ml-4 flex-1">
-                                    <Link to={`/product/${item.product}`} className="text-blue-600 font-medium hover:underline">
+                          <Link to={`/product/${item.product}`} className="text-primary font-medium hover:underline">
                                         {item.name}
                                     </Link>
-                                    <p className="text-gray-500 text-sm mt-1">Quantity: {item.qty}</p>
-                                    <p className="text-gray-900 font-bold mt-1">₹{item.price}</p>
+                          <p className="text-muted text-sm mt-1">Quantity: {item.qty}</p>
+                          {item.isHaggled ? (
+                            <div className="mt-1">
+                              <p className="text-xs text-muted line-through">Original: ₹{Number(item.originalPrice || item.price).toFixed(2)}</p>
+                              <p className="text-accent-1 font-bold">Deal Price: ₹{Number(item.price).toFixed(2)}</p>
+                            </div>
+                          ) : (
+                            <p className="text-foreground font-bold mt-1">₹{Number(item.price).toFixed(2)}</p>
+                          )}
+                          <Link
+                            to={`/product/${item.product}`}
+                            className="inline-block mt-2 text-xs font-bold text-primary hover:underline"
+                          >
+                            Write / View Review
+                          </Link>
                                 </div>
                             </div>
                         ))}
                     </div>
                 </div>
 
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-                     <h2 className="text-lg font-semibold text-gray-800 mb-4">Shipping Details</h2>
-                     <div className="text-gray-600 text-sm space-y-1">
-                        <p><span className="font-medium text-gray-900">Recipient:</span> {order.user.name}</p>
-                        <p><span className="font-medium text-gray-900">Email:</span> {order.user.email}</p>
-                        <p><span className="font-medium text-gray-900">Address:</span> {order.shippingAddress.address}, {order.shippingAddress.city} - {order.shippingAddress.postalCode}</p>
+                <div className="app-card p-6">
+                     <h2 className="text-lg font-semibold text-foreground mb-4">Shipping Details</h2>
+                     <div className="text-muted text-sm space-y-1">
+                        <p><span className="font-medium text-foreground">Recipient:</span> {order.user.name}</p>
+                        <p><span className="font-medium text-foreground">Email:</span> {order.user.email}</p>
+                        <p><span className="font-medium text-foreground">Address:</span> {order.shippingAddress.address}, {order.shippingAddress.city} - {order.shippingAddress.postalCode}</p>
                      </div>
                 </div>
             </div>
 
             <div className="space-y-6">
-                <div className="bg-white p-6 rounded-2xl shadow-lg border border-gray-100 h-fit">
-                    <h2 className="text-xl font-bold text-gray-900 mb-6">Payment Summary</h2>
-                    <div className="space-y-3 border-b border-gray-100 pb-4 mb-4">
-                        <div className="flex justify-between text-gray-600"><span>Subtotal</span><span>₹{order.itemsPrice}</span></div>
-                        <div className="flex justify-between text-gray-600"><span>Shipping</span><span>₹{order.shippingPrice}</span></div>
-                        <div className="flex justify-between text-gray-600"><span>Tax</span><span>₹{order.taxPrice}</span></div>
+                <div className="app-card p-6 h-fit">
+                    <h2 className="text-xl font-bold text-foreground mb-6">Payment Summary</h2>
+                    <div className="space-y-3 border-b border-app pb-4 mb-4">
+                        <div className="flex justify-between text-muted"><span>Actual Item Price</span><span>₹{breakdown.actualItemsPrice.toFixed(2)}</span></div>
+                        <div className="flex justify-between text-accent-1"><span>Haggle Savings</span><span>-₹{breakdown.haggleSavings.toFixed(2)}</span></div>
+                        <div className="flex justify-between text-muted"><span>Taxable Value</span><span>₹{breakdown.taxableValue.toFixed(2)}</span></div>
+                        <div className="flex justify-between text-muted"><span>CGST (9%)</span><span>₹{breakdown.cgstAmount.toFixed(2)}</span></div>
+                        <div className="flex justify-between text-muted"><span>SGST (9%)</span><span>₹{breakdown.sgstAmount.toFixed(2)}</span></div>
+                        <div className="flex justify-between text-muted"><span>Shipping</span><span>₹{breakdown.shippingAmount.toFixed(2)}</span></div>
                         
-                        {discount > 0 && (
+                        {breakdown.couponPercent > 0 && (
                           <div className="flex justify-between text-green-600 font-bold">
-                            <span>Coupon Discount ({discount}%)</span>
-                            <span>-₹{(order.totalPrice * (discount / 100)).toFixed(2)}</span>
+                            <span>Coupon Discount ({breakdown.couponPercent}%)</span>
+                            <span>-₹{breakdown.couponDiscountAmount.toFixed(2)}</span>
                           </div>
                         )}
                     </div>
 
-                    <div className="flex justify-between items-center text-xl font-bold text-gray-900 mb-6">
-                        <span>Total</span>
-                        <span>₹{(order.totalPrice - (order.totalPrice * (discount / 100))).toFixed(2)}</span>
+                    <div className="flex justify-between items-center text-xl font-bold text-foreground mb-6">
+                        <span>Final Payable</span>
+                        <span>₹{breakdown.finalPayable.toFixed(2)}</span>
                     </div>
 
                     {!order.isPaid && (
-                      <div className="mb-6 p-4 bg-gray-50 rounded-xl border border-dashed border-gray-300">
-                        <div className="flex items-center gap-2 mb-2 text-gray-700 font-bold text-xs uppercase">
+                      <div className="mb-6 p-4 bg-surface-2 rounded-xl border border-dashed border-app">
+                        <div className="flex items-center gap-2 mb-2 text-muted font-bold text-xs uppercase">
                           <FaTicketAlt /> Have a Coupon?
                         </div>
                         <div className="flex gap-2">
                           <input 
                             type="text" 
                             placeholder="FLIT10"
-                            className="w-full p-2 border rounded-lg outline-none focus:ring-1 focus:ring-blue-500 uppercase font-mono text-sm"
+                            className="app-input w-full uppercase font-mono text-sm"
                             value={couponCode}
                             onChange={(e) => setCouponCode(e.target.value)}
                           />
-                          <button onClick={applyCouponHandler} className="bg-gray-900 text-white px-4 rounded-lg text-[10px] font-black uppercase tracking-widest">Apply</button>
+                          <button onClick={applyCouponHandler} className="app-btn text-[10px] uppercase tracking-widest">Apply</button>
                         </div>
                       </div>
                     )}
@@ -324,7 +391,7 @@ const OrderScreen = () => {
                     {order.isPaid && (
                       <button 
                         onClick={downloadInvoice}
-                        className="w-full mb-4 bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold py-3 px-4 rounded-lg border border-gray-200 transition flex items-center justify-center gap-2"
+                        className="w-full mb-4 bg-surface-2 hover:bg-surface text-foreground font-bold py-3 px-4 rounded-lg border border-app transition flex items-center justify-center gap-2"
                       >
                         <FaFilePdf className="text-red-600 text-xl" />
                         <span>Download Invoice</span>
@@ -333,7 +400,7 @@ const OrderScreen = () => {
 
                     {!order.isPaid ? (
                         <div className="mt-4 space-y-3">
-                             <button onClick={handleRazorpayPayment} className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg shadow-md transition-colors flex items-center justify-center gap-2">
+                              <button onClick={handleRazorpayPayment} className="w-full app-btn py-3 flex items-center justify-center gap-2">
                                 <span>Pay with Razorpay</span>
                              </button>
                              {paypalClientId && (
@@ -349,14 +416,14 @@ const OrderScreen = () => {
                         </div>
                     ) : (
                         <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
-                            <p className="text-green-700 font-medium">Payment Successful</p>
+                          <p className="text-green-700 font-medium">Payment Successful</p>
                         </div>
                     )}
 
                    {userInfo && userInfo.isAdmin && order.isPaid && !order.isDelivered && (
                     <button
                         type="button"
-                        className="w-full bg-gray-900 text-white font-bold py-3 rounded-lg hover:bg-black transition mt-4"
+                        className="w-full bg-foreground text-white font-bold py-3 rounded-lg hover:opacity-90 transition mt-4"
                         onClick={deliverHandler}
                     >
                         {loadingDeliver ? 'Updating...' : 'Mark As Delivered'}

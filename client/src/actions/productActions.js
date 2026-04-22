@@ -18,12 +18,21 @@ import {
 } from '../constants/productConstants';
 
 // 1. FOR LOADING ALL PRODUCTS (Updated with Search Keyword)
-export const listProducts = (keyword = '') => async (dispatch) => {
+export const listProducts = (filters = {}) => async (dispatch) => {
   try {
     dispatch({ type: PRODUCT_LIST_REQUEST });
 
     // The keyword is sent as a query string to the backend
-    const { data } = await axios.get(`/api/products?keyword=${keyword}`);
+    const params = new URLSearchParams();
+    if (filters.keyword) params.append('keyword', filters.keyword);
+    if (filters.category) params.append('category', filters.category);
+    if (filters.brand) params.append('brand', filters.brand);
+    if (filters.minPrice) params.append('minPrice', filters.minPrice);
+    if (filters.maxPrice) params.append('maxPrice', filters.maxPrice);
+    if (filters.minRating) params.append('minRating', filters.minRating);
+    if (filters.sort) params.append('sort', filters.sort);
+    const qs = params.toString();
+    const { data } = await axios.get(`/api/products${qs ? `?${qs}` : ''}`);
 
     dispatch({
       type: PRODUCT_LIST_SUCCESS,

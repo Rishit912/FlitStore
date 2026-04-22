@@ -102,11 +102,11 @@ const AdminChart = ({ orders }) => {
   };
 
   return (
-    <div className="bg-white p-6 rounded-[2rem] shadow-2xl border border-gray-100 animate-fade-in">
+    <div className="bg-surface p-6 rounded-[2rem] shadow-2xl border border-app animate-fade-in">
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h3 className="text-lg font-black text-gray-800 uppercase tracking-tighter">Revenue Flow</h3>
-          <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Daily Performance Metrics</p>
+          <h3 className="text-lg font-black text-foreground uppercase tracking-tighter">Revenue Flow</h3>
+          <p className="text-[10px] text-muted font-bold uppercase tracking-widest">Daily Performance Metrics</p>
         </div>
         <div className="flex gap-2">
           <span className="w-3 h-3 bg-blue-600 rounded-full"></span>
