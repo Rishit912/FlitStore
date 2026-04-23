@@ -15,6 +15,7 @@ const orderSchema = mongoose.Schema(
                 price: { type: Number, required: true },
                 originalPrice: { type: Number, default: 0 },
                 isHaggled: { type: Boolean, default: false },
+                size: { type: String, default: '' },
                 product: {
                     type: mongoose.Schema.Types.ObjectId,
                     required: true,

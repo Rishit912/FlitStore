@@ -50,6 +50,11 @@ const ProductSchema = new mongoose.Schema({
         type: String,
         required: true
     },
+    size: {
+        type: String,
+        trim: true,
+        default: ''
+    },
     description: {
         type: String,
         required: true

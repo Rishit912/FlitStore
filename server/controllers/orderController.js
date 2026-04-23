@@ -60,6 +60,7 @@ export const addOrderItems = asyncHandler(async (req, res) => {
         price: finalPrice,
         originalPrice,
         isHaggled: Boolean(item.isHaggled || finalPrice < originalPrice),
+        size: item.size || dbProduct.size || '',
         product: item.product || item._id,
       });
     }

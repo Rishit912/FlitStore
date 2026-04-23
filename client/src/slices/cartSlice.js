@@ -14,6 +14,7 @@ const sanitizeCartState = (state) => {
       price: Number(item.price), 
       originalPrice: Number(item.originalPrice ?? item.price),
       isHaggled: Boolean(item.isHaggled),
+      size: item.size || '',
       countInStock: item.countInStock,
       qty: item.qty,
     }))
@@ -44,6 +45,7 @@ const cartSlice = createSlice({
         price: Number(item.price),
         originalPrice: Number(item.originalPrice ?? item.price),
         isHaggled: Boolean(item.isHaggled),
+        size: item.size || '',
         countInStock: item.countInStock,
         qty: item.qty,
       };
@@ -52,11 +54,41 @@ const cartSlice = createSlice({
 
       if (existItem) {
         state.cartItems = state.cartItems.map((x) =>
-          x._id === existItem._id ? normalizedItem : x
+          x._id === existItem._id
+            ? {
+                ...x,
+                qty: Number(x.qty || 0) + Number(normalizedItem.qty || 1),
+                price: normalizedItem.isHaggled ? normalizedItem.price : x.price,
+                originalPrice: normalizedItem.originalPrice || x.originalPrice,
+                isHaggled: Boolean(x.isHaggled || normalizedItem.isHaggled),
+                countInStock: normalizedItem.countInStock ?? x.countInStock,
+              }
+            : x
         );
       } else {
         state.cartItems = [...state.cartItems, normalizedItem];
       }
+
+      localStorage.setItem('cart', JSON.stringify(state));
+    },
+
+    updateCartItem: (state, action) => {
+      const item = action.payload;
+      const updatedItem = {
+        _id: item._id,
+        name: item.name,
+        image: item.image,
+        price: Number(item.price),
+        originalPrice: Number(item.originalPrice ?? item.price),
+        isHaggled: Boolean(item.isHaggled),
+        size: item.size || '',
+        countInStock: item.countInStock,
+        qty: item.qty,
+      };
+
+      state.cartItems = state.cartItems.map((x) =>
+        x._id === updatedItem._id ? updatedItem : x
+      );
 
       localStorage.setItem('cart', JSON.stringify(state));
     },
@@ -92,6 +124,7 @@ const cartSlice = createSlice({
 
 export const { 
   addToCart, 
+  updateCartItem,
   removeFromCart, 
   saveShippingAddress, 
   savePaymentMethod,

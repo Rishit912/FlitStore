@@ -9,6 +9,7 @@ const isDuplicateRetailerProduct = (existingProduct, nextProduct) => {
     normalizeProductField(existingProduct.name) === normalizeProductField(nextProduct.name) &&
     normalizeProductField(existingProduct.brand) === normalizeProductField(nextProduct.brand) &&
     normalizeProductField(existingProduct.category) === normalizeProductField(nextProduct.category) &&
+    normalizeProductField(existingProduct.size) === normalizeProductField(nextProduct.size) &&
     Number(existingProduct.price) === Number(nextProduct.price) &&
     normalizeProductField(existingProduct.description) === normalizeProductField(nextProduct.description) &&
     Number(existingProduct.countInStock) === Number(nextProduct.countInStock)
@@ -228,6 +229,7 @@ export const createMyProduct = asyncHandler(async (req, res) => {
     name: req.body.name,
     brand: req.body.brand,
     category: req.body.category,
+    size: req.body.size || '',
     price: Number(req.body.price || 0),
     description: req.body.description,
     countInStock: Number(req.body.countInStock || 0),
@@ -251,6 +253,7 @@ export const createMyProduct = asyncHandler(async (req, res) => {
     image: req.body.image || '/default-product.png',
     brand: req.body.brand || 'General',
     category: req.body.category || 'Uncategorized',
+    size: req.body.size || '',
     countInStock: normalizedNextProduct.countInStock,
     numReviews: 0,
     description: req.body.description || '',
@@ -280,6 +283,7 @@ export const updateMyProduct = asyncHandler(async (req, res) => {
     name: req.body.name ?? product.name,
     brand: req.body.brand ?? product.brand,
     category: req.body.category ?? product.category,
+    size: req.body.size ?? product.size,
     price: req.body.price ?? product.price,
     description: req.body.description ?? product.description,
     countInStock: req.body.countInStock ?? product.countInStock,
@@ -299,6 +303,7 @@ export const updateMyProduct = asyncHandler(async (req, res) => {
   product.image = req.body.image ?? product.image;
   product.brand = nextProduct.brand;
   product.category = nextProduct.category;
+  product.size = nextProduct.size;
   product.countInStock = nextProduct.countInStock;
 
   const updatedProduct = await product.save();
@@ -373,6 +378,7 @@ export const createProduct = asyncHandler(async (req, res) => {
     image: '/images/sample.jpg',
     brand: 'Sample brand',
     category: 'Sample category',
+    size: '',
     countInStock: 0,
     numReviews: 0,
     description: 'Sample description',
@@ -386,7 +392,7 @@ export const createProduct = asyncHandler(async (req, res) => {
 // @route   PUT /api/products/:id
 // @access  Private/Admin
 export const updateProduct = asyncHandler(async (req, res) => {
-  const { name, price, description, image, brand, category, countInStock } = req.body;
+  const { name, price, description, image, brand, category, size, countInStock } = req.body;
 
   const product = await Product.findById(req.params.id);
 
@@ -397,6 +403,7 @@ export const updateProduct = asyncHandler(async (req, res) => {
     product.image = image;
     product.brand = brand;
     product.category = category;
+    product.size = size ?? product.size;
     product.countInStock = countInStock;
 
     const updatedProduct = await product.save();

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { FaTrash } from 'react-icons/fa';
-import { addToCart, removeFromCart } from '../slices/cartSlice';
+import { removeFromCart, updateCartItem } from '../slices/cartSlice';
 import { toast } from 'react-toastify';
 
 const CartScreen = () => {
@@ -25,7 +25,13 @@ const CartScreen = () => {
   const shippingCharge = 0;
   const invoiceTotal = taxableValue + gstAmount + shippingCharge;
   const haggledItemsCount = cartItems.filter((item) => item.isHaggled).length;
-  const hasInvalidStockItem = cartItems.some((item) => Number(item.countInStock || 0) <= 0 || Number(item.qty) > Number(item.countInStock || 0));
+  const hasInvalidStockItem = cartItems.some((item) => {
+    const stockNumber = Number(item.countInStock);
+    const hasKnownStock = Number.isFinite(stockNumber);
+    if (!hasKnownStock) return false;
+    const safeStock = Math.max(0, stockNumber);
+    return safeStock <= 0 || Number(item.qty) > safeStock;
+  });
 
   const checkoutHandler = () => {
     if (hasInvalidStockItem) {
@@ -57,11 +63,12 @@ const CartScreen = () => {
 
     if (offeredPrice >= minAllowed && offeredPrice < originalPrice) {
       dispatch(
-        addToCart({
+        updateCartItem({
           ...item,
           price: Number(offeredPrice.toFixed(2)),
           originalPrice,
           isHaggled: true,
+          qty: Number(item.qty || 1),
         })
       );
       setBargainingItemId('');
@@ -80,11 +87,12 @@ const CartScreen = () => {
   const resetBargain = (item) => {
     const originalPrice = Number(item.originalPrice ?? item.price);
     dispatch(
-      addToCart({
+      updateCartItem({
         ...item,
         price: originalPrice,
         originalPrice,
         isHaggled: false,
+        qty: Number(item.qty || 1),
       })
     );
     toast.info('Bargain removed. Price reset to original.');
@@ -104,16 +112,25 @@ const CartScreen = () => {
           <div className="lg:col-span-2 space-y-4">
             {cartItems.map((item) => (
               (() => {
-                const safeStock = Math.max(0, Number(item.countInStock || 0));
-                const qtyOptions = safeStock > 0 ? [...Array(safeStock).keys()] : [];
+                const stockNumber = Number(item.countInStock);
+                const hasKnownStock = Number.isFinite(stockNumber);
+                const safeStock = hasKnownStock ? Math.max(0, stockNumber) : Math.max(1, Number(item.qty || 1));
+                const qtyUpperBound = Math.max(safeStock, Number(item.qty || 1));
+                const qtyOptions = qtyUpperBound > 0 ? [...Array(qtyUpperBound).keys()] : [];
+                const canBargain = safeStock > 0 || !hasKnownStock;
                 return (
-              <div key={item._id} className="app-card p-4 flex items-center justify-between">
+              <div key={item._id} className="app-card p-4 flex flex-col xl:flex-row xl:items-start xl:justify-between gap-4">
                 <img src={item.image} alt={item.name} className="w-20 h-20 object-cover rounded" />
                 
-                <div className="flex-1 ml-4">
+                <div className="flex-1 xl:ml-4 min-w-0">
                   <Link to={`/product/${item._id}`} className="font-bold text-foreground hover:text-primary">
                     {item.name}
                   </Link>
+                  {item.size && (
+                    <div className="mt-2 inline-flex rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-[11px] font-black uppercase tracking-[0.18em] text-amber-700 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-300">
+                      Size: {item.size}
+                    </div>
+                  )}
                   <div className="text-sm mt-1">
                     {item.isHaggled ? (
                       <div className="space-y-1">
@@ -127,17 +144,43 @@ const CartScreen = () => {
                       <p className="text-muted">₹{Number(item.price).toFixed(2)}</p>
                     )}
                   </div>
-                  {safeStock <= 0 && <p className="text-danger text-xs font-bold mt-2">Out of stock</p>}
+                  {hasKnownStock && safeStock <= 0 && <p className="text-danger text-xs font-bold mt-2">Out of stock</p>}
                   {safeStock > 0 && Number(item.qty) > safeStock && <p className="text-danger text-xs font-bold mt-2">Only {safeStock} left in stock</p>}
 
-                  {safeStock > 0 && (
-                    <div className="mt-3">
+                </div>
+
+                <div className="w-full xl:w-[320px] xl:self-start space-y-3">
+                  <div className="flex items-center justify-end gap-2">
+                    {/* Update Qty in Cart */}
+                    <select 
+                      value={safeStock > 0 ? Math.min(Number(item.qty), safeStock) : Number(item.qty || 1)}
+                      disabled={hasKnownStock && safeStock <= 0}
+                      onChange={(e) => dispatch(updateCartItem({ ...item, qty: Number(e.target.value) }))}
+                      className="app-input"
+                    >
+                      {qtyOptions.map((x) => (
+                        <option key={x + 1} value={x + 1}>{x + 1}</option>
+                      ))}
+                    </select>
+
+                    {/* Remove Button */}
+                    <button
+                      onClick={() => dispatch(removeFromCart(item._id))}
+                      className="text-red-500 hover:text-red-400 p-2"
+                    >
+                      <FaTrash />
+                    </button>
+                  </div>
+
+                  {canBargain && (
+                    <div className="rounded-xl border border-accent-1/30 bg-accent-1/10 p-3">
+                      <p className="text-[11px] font-black uppercase tracking-[0.2em] text-accent-1 mb-2">AI Bargain Zone</p>
                       {bargainingItemId === item._id ? (
-                        <div className="flex flex-col sm:flex-row gap-2">
+                        <div className="flex flex-col gap-2">
                           <input
                             type="number"
                             min="1"
-                            className="app-input text-sm"
+                            className="app-input text-sm w-full"
                             value={offerByItem[item._id] ?? ''}
                             onChange={(e) =>
                               setOfferByItem((prev) => ({
@@ -147,27 +190,29 @@ const CartScreen = () => {
                             }
                             placeholder="Enter your offer"
                           />
-                          <button
-                            type="button"
-                            onClick={() => applyBargain(item)}
-                            className="app-btn px-3 py-2 text-xs"
-                          >
-                            Apply Deal
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setBargainingItemId('')}
-                            className="border border-app bg-surface-2 text-muted px-3 py-2 rounded-lg text-xs"
-                          >
-                            Cancel
-                          </button>
+                          <div className="grid grid-cols-2 gap-2">
+                            <button
+                              type="button"
+                              onClick={() => applyBargain(item)}
+                              className="app-btn px-4 py-2.5 text-sm font-black"
+                            >
+                              Apply Deal
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setBargainingItemId('')}
+                              className="border border-app bg-surface-2 text-muted px-4 py-2.5 rounded-lg text-sm font-bold"
+                            >
+                              Cancel
+                            </button>
+                          </div>
                         </div>
                       ) : (
-                        <div className="flex items-center gap-2">
+                        <div className="space-y-2">
                           <button
                             type="button"
                             onClick={() => startBargain(item)}
-                            className="border-2 border-accent-1 text-accent-1 bg-accent-1/5 hover:bg-accent-1/10 px-3 py-2 rounded-lg text-xs font-bold"
+                            className="w-full border-2 border-accent-1 text-accent-1 bg-white/40 hover:bg-white/60 px-5 py-2.5 rounded-xl text-sm font-black uppercase tracking-wide shadow-md"
                           >
                             AI Bargain
                           </button>
@@ -175,39 +220,24 @@ const CartScreen = () => {
                             <button
                               type="button"
                               onClick={() => resetBargain(item)}
-                              className="border border-app bg-surface-2 text-muted px-3 py-2 rounded-lg text-xs font-bold"
+                              className="w-full border border-app bg-surface-2 text-muted px-4 py-2.5 rounded-xl text-sm font-bold"
                             >
                               Remove Deal
                             </button>
                           )}
                         </div>
                       )}
-                      <p className="text-[11px] text-muted mt-1">AI allows up to 10% off from original price.</p>
+                      <p className="text-xs text-muted mt-2 font-semibold">AI allows up to 10% off from original price.</p>
                     </div>
                   )}
+
+                  <Link
+                    to={`/product/${item._id}#reviews-section`}
+                    className="block w-full text-center border border-app bg-surface-2 text-foreground px-4 py-2.5 rounded-xl text-sm font-bold hover:bg-surface"
+                  >
+                    Open Reviews
+                  </Link>
                 </div>
-
-                {/* Update Qty in Cart */}
-                <select 
-                  value={safeStock > 0 ? Math.min(Number(item.qty), safeStock) : 0}
-                  disabled={safeStock <= 0}
-                  onChange={(e) => dispatch(addToCart({ ...item, qty: Number(e.target.value) }))}
-                  className="app-input mx-2"
-                >
-                  {qtyOptions.map((x) => (
-                    <option key={x + 1} value={x + 1}>{x + 1}</option>
-                  ))}
-                </select>
-
-                {/* Remove Button */}
-                <button 
-  // IMPORTANT: We must pass item._id here. 
-  // If you just wrote removeFromCart(), it won't work.
-  onClick={() => dispatch(removeFromCart(item._id))}
-  className="text-red-500 hover:text-red-400 p-2"
->
-  <FaTrash />
-</button>
               </div>
                 );
               })()

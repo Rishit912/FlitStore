@@ -77,13 +77,11 @@ const Header = () => {
             </Link>
           )}
 
-          {/* 🛒 CART: Hidden for Admins to keep UI clean */}
-          {(!userInfo || (!userInfo.isAdmin && !userInfo.isRetailer)) && (
-            <Link to="/cart" className="text-muted hover:text-primary font-semibold transition flex items-center gap-2">
-              <i className="fas fa-shopping-cart"></i>
-              <span className="hidden sm:inline">Cart</span>
-            </Link>
-          )}
+          {/* 🛒 CART: keep visible for all roles so feature flows are easy to access */}
+          <Link to="/cart" className="text-muted hover:text-primary font-semibold transition flex items-center gap-2">
+            <i className="fas fa-shopping-cart"></i>
+            <span className="hidden sm:inline">Cart</span>
+          </Link>
 
           {/* 🟢 ADMIN DASHBOARD: Strictly for Admins */}
           {userInfo && userInfo.isAdmin && (

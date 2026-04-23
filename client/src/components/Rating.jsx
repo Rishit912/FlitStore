@@ -4,6 +4,17 @@ import { FaStar, FaStarHalfAlt, FaRegStar } from 'react-icons/fa';
 const Rating = ({ value, text, color = 'var(--accent-1)', onSelect, interactive = false }) => {
   const [hoverValue, setHoverValue] = useState(0);
   const displayValue = interactive && hoverValue ? hoverValue : value;
+  const resolveStarValue = (event, index) => {
+    const { left, width } = event.currentTarget.getBoundingClientRect();
+    const clickX = event.clientX - left;
+    return clickX <= width / 2 ? index - 0.5 : index;
+  };
+
+  const renderStar = (index) => {
+    if (displayValue >= index) return <FaStar style={{ color }} />;
+    if (displayValue >= index - 0.5) return <FaStarHalfAlt style={{ color }} />;
+    return <FaRegStar style={{ color }} />;
+  };
 
   return (
     <div className='flex items-center space-x-1 my-2'>
@@ -12,27 +23,17 @@ const Rating = ({ value, text, color = 'var(--accent-1)', onSelect, interactive 
           {interactive ? (
             <button
               type='button'
-              onClick={() => onSelect && onSelect(index)}
-              onMouseEnter={() => setHoverValue(index)}
+              onClick={(event) => onSelect && onSelect(resolveStarValue(event, index))}
+              onMouseMove={(event) => setHoverValue(resolveStarValue(event, index))}
               onMouseLeave={() => setHoverValue(0)}
               className='cursor-pointer'
-              aria-label={`Rate ${index} star${index > 1 ? 's' : ''}`}
+              aria-label={`Rate ${index - 0.5} to ${index} stars`}
             >
-              {displayValue >= index ? (
-                <FaStar style={{ color }} />
-              ) : (
-                <FaRegStar style={{ color }} />
-              )}
+              {renderStar(index)}
             </button>
           ) : (
             <span>
-              {displayValue >= index ? (
-                <FaStar style={{ color }} />
-              ) : displayValue >= index - 0.5 ? (
-                <FaStarHalfAlt style={{ color }} />
-              ) : (
-                <FaRegStar style={{ color }} />
-              )}
+              {renderStar(index)}
             </span>
           )}
         </span>

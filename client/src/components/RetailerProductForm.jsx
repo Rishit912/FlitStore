@@ -2,15 +2,46 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 
+const SIZE_OPTIONS = ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL', 'Free Size'];
+
+const APPAREL_CATEGORY_KEYWORDS = [
+  'cloth',
+  'clothing',
+  'apparel',
+  'garment',
+  'shirt',
+  't-shirt',
+  'tshirt',
+  'pant',
+  'jean',
+  'dress',
+  'kurti',
+  'saree',
+  'skirt',
+  'top',
+  'jacket',
+  'hoodie',
+  'trouser',
+  'shorts',
+  'wear',
+];
+
+const isApparelCategory = (value) => {
+  const normalized = String(value || '').toLowerCase();
+  return APPAREL_CATEGORY_KEYWORDS.some((keyword) => normalized.includes(keyword));
+};
+
 const RetailerProductForm = ({ onSubmit, initialData }) => {
   const [name, setName] = useState(initialData?.name || '');
   const [price, setPrice] = useState(initialData?.price || '');
   const [description, setDescription] = useState(initialData?.description || '');
   const [brand, setBrand] = useState(initialData?.brand || '');
   const [category, setCategory] = useState(initialData?.category || '');
+  const [size, setSize] = useState(initialData?.size || '');
   const [countInStock, setCountInStock] = useState(initialData?.countInStock ?? 0);
   const [image, setImage] = useState(initialData?.image || '');
   const [uploading, setUploading] = useState(false);
+  const showSizeField = isApparelCategory(category);
 
   const handleImageChange = async (e) => {
     const file = e.target.files[0];
@@ -34,7 +65,7 @@ const RetailerProductForm = ({ onSubmit, initialData }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSubmit({ name, price, description, brand, category, countInStock, image });
+    onSubmit({ name, price, description, brand, category, size: showSizeField ? size : '', countInStock, image });
   };
 
   return (
@@ -91,6 +122,23 @@ const RetailerProductForm = ({ onSubmit, initialData }) => {
           />
         </div>
       </div>
+      {showSizeField && (
+        <div className="space-y-2">
+          <label className="block text-[11px] font-black uppercase tracking-[0.32em] text-muted">Size</label>
+          <select
+            className="app-input w-full rounded-2xl bg-surface-2 shadow-sm"
+            value={size}
+            onChange={e => setSize(e.target.value)}
+            required={showSizeField}
+          >
+            <option value="">Select size</option>
+            {SIZE_OPTIONS.map((option) => (
+              <option key={option} value={option}>{option}</option>
+            ))}
+          </select>
+          <p className="text-xs text-muted">Size is shown only for apparel-style categories.</p>
+        </div>
+      )}
       <div className="space-y-2">
         <label className="block text-[11px] font-black uppercase tracking-[0.32em] text-muted">Stock Count</label>
         <input

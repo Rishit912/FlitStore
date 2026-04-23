@@ -129,6 +129,9 @@ const RetailerProductList = ({ products, onEdit, onDelete }) => {
                   {product.category && (
                     <span className="rounded-full bg-surface-2 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-muted border border-app">{product.category}</span>
                   )}
+                  {product.size && (
+                    <span className="rounded-full bg-amber-50 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-amber-700 border border-amber-200 dark:bg-amber-950/30 dark:text-amber-300 dark:border-amber-900">Size {product.size}</span>
+                  )}
                   {product.brand && (
                     <span className="rounded-full bg-sky-50 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-sky-700 dark:bg-sky-950/30 dark:text-sky-300">{product.brand}</span>
                   )}

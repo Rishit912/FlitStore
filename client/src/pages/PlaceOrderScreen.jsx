@@ -63,6 +63,7 @@ const PlaceOrderScreen = () => {
                     price: Number(item.price),
                     originalPrice: Number(item.originalPrice ?? item.price),
                     isHaggled: Boolean(item.isHaggled),
+                    size: item.size || '',
                     product: productId,
                 };
             });
@@ -160,6 +161,9 @@ const PlaceOrderScreen = () => {
                                             </Link>
                                         </div>
                                         <div className="text-muted">
+                                            {item.size && (
+                                                <p className="text-xs font-black uppercase tracking-[0.18em] text-amber-700 mb-1">Size: {item.size}</p>
+                                            )}
                                                                                         {item.qty} x ₹{Number(item.price).toFixed(2)} = <strong>₹{(item.qty * item.price).toFixed(2)}</strong>
                                                                                         {item.isHaggled && (
                                                                                             <p className="text-xs text-accent-1 mt-1 font-semibold">

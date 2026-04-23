@@ -98,9 +98,10 @@ const OrderScreen = () => {
     doc.text(`${order.shippingAddress.city} - ${order.shippingAddress.postalCode}`, 14, 68);
 
     // Items Table
-    const tableColumn = ["Product", "Qty", "Original", "Deal", "Line Total"];
+    const tableColumn = ["Product", "Size", "Qty", "Original", "Deal", "Line Total"];
     const tableRows = order.orderItems.map(item => [
       item.name,
+      item.size || '-',
       item.qty,
       `INR ${Number(item.originalPrice || item.price).toFixed(2)}`,
       `INR ${Number(item.price).toFixed(2)}`,
@@ -184,13 +185,17 @@ const OrderScreen = () => {
             const resPaypal = await fetch('/api/config/paypal');
             const paypalData = await resPaypal.json();
             setPaypalClientId(paypalData.clientId);
-          } catch (err) { }
+          } catch (error) {
+            console.warn('PayPal config load failed', error);
+          }
 
           try {
             const resRazorpay = await fetch('/api/config/razorpay');
             const razorpayData = await resRazorpay.json();
             setRazorpayKeyId(razorpayData.key);
-          } catch (err) { }
+          } catch (error) {
+            console.warn('Razorpay config load failed', error);
+          }
         }
       } catch (err) {
         toast.error(err.message);
@@ -281,6 +286,10 @@ const OrderScreen = () => {
 
   const breakdown = getPriceBreakdown(order);
 
+  const openReviewSection = (productId) => {
+    window.open(`/product/${productId}?reviewOnly=1#reviews-section`, '_blank', 'noopener,noreferrer');
+  };
+
   return (
     <div className="bg-app min-h-screen py-10">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -306,6 +315,7 @@ const OrderScreen = () => {
                           <Link to={`/product/${item.product}`} className="text-primary font-medium hover:underline">
                                         {item.name}
                                     </Link>
+                          {item.size && <p className="text-xs uppercase tracking-[0.18em] text-amber-700 font-black mt-1">Size: {item.size}</p>}
                           <p className="text-muted text-sm mt-1">Quantity: {item.qty}</p>
                           {item.isHaggled ? (
                             <div className="mt-1">
@@ -315,12 +325,19 @@ const OrderScreen = () => {
                           ) : (
                             <p className="text-foreground font-bold mt-1">₹{Number(item.price).toFixed(2)}</p>
                           )}
-                          <Link
-                            to={`/product/${item.product}`}
-                            className="inline-block mt-2 text-xs font-bold text-primary hover:underline"
-                          >
-                            Write / View Review
-                          </Link>
+                          {order.isPaid ? (
+                            <button
+                              type="button"
+                              onClick={() => openReviewSection(item.product)}
+                              className="inline-block mt-3 text-xs font-black uppercase tracking-wide text-primary hover:underline"
+                            >
+                              Write / View Review
+                            </button>
+                          ) : (
+                            <p className="mt-3 text-xs text-muted">
+                              Review available after payment
+                            </p>
+                          )}
                                 </div>
                             </div>
                         ))}
@@ -409,7 +426,7 @@ const OrderScreen = () => {
                                       createOrder={(data, actions) => actions.order.create({ 
                                         purchase_units: [{ amount: { value: (order.totalPrice - (order.totalPrice * (discount / 100))).toFixed(2) } }] 
                                       })} 
-                                      onApprove={(data, actions) => actions.order.capture().then(async (details) => { window.location.reload(); })} 
+                                      onApprove={(data, actions) => actions.order.capture().then(async () => { window.location.reload(); })} 
                                     />
                                 </PayPalScriptProvider>
                             )}

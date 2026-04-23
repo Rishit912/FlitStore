@@ -15,7 +15,7 @@ const SIDEBAR_LINKS = [
 const RetailerDashboard = () => {
   const [products, setProducts] = useState([]);
   const [editing, setEditing] = useState(null);
-  const [activeTab, setActiveTab] = useState('overview');
+  const [activeTab, setActiveTab] = useState('orders');
   const [summary, setSummary] = useState({ totalProducts: 0, totalUnitsSold: 0, totalRevenue: 0, totalOrders: 0 });
   const [loadingProducts, setLoadingProducts] = useState(true);
   const [orders, setOrders] = useState([]);
@@ -154,6 +154,7 @@ const RetailerDashboard = () => {
         description: data.description,
         brand: data.brand,
         category: data.category,
+        size: data.size || '',
         countInStock: Number(data.countInStock || 0),
         image: data.image || '/default-product.png',
       };
@@ -265,6 +266,29 @@ const RetailerDashboard = () => {
                   <div className="text-2xl font-black mt-1 tabular-nums">₹{summary.totalRevenue || 0}</div>
                 </div>
               </div>
+            </div>
+          </div>
+
+          <div className="mb-8 rounded-2xl border border-primary/30 bg-primary/10 p-4 lg:p-5">
+            <p className="text-xs font-black uppercase tracking-[0.25em] text-primary">New Seller Features</p>
+            <p className="mt-2 text-sm text-foreground">
+              Use <span className="font-bold">Orders</span> to update fulfillment and <span className="font-bold">Reviews</span> to read buyer feedback.
+            </p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => setActiveTab('orders')}
+                className="app-btn px-4 py-2 text-xs font-bold"
+              >
+                Open Orders
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab('reviews')}
+                className="border border-app bg-surface-2 text-foreground px-4 py-2 rounded-lg text-xs font-bold"
+              >
+                Open Reviews
+              </button>
             </div>
           </div>
 

@@ -6,6 +6,35 @@ import { toast } from 'react-toastify';
 import { listProductDetails, updateProduct } from '../actions/productActions';
 import { PRODUCT_UPDATE_RESET } from '../constants/productConstants';
 
+const SIZE_OPTIONS = ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL', 'Free Size'];
+
+const APPAREL_CATEGORY_KEYWORDS = [
+  'cloth',
+  'clothing',
+  'apparel',
+  'garment',
+  'shirt',
+  't-shirt',
+  'tshirt',
+  'pant',
+  'jean',
+  'dress',
+  'kurti',
+  'saree',
+  'skirt',
+  'top',
+  'jacket',
+  'hoodie',
+  'trouser',
+  'shorts',
+  'wear',
+];
+
+const isApparelCategory = (value) => {
+  const normalized = String(value || '').toLowerCase();
+  return APPAREL_CATEGORY_KEYWORDS.some((keyword) => normalized.includes(keyword));
+};
+
 const ProductEditScreen = () => {
   const { id: productId } = useParams();
 
@@ -14,6 +43,7 @@ const ProductEditScreen = () => {
   const [image, setImage] = useState('');
   const [brand, setBrand] = useState('');
   const [category, setCategory] = useState('');
+  const [size, setSize] = useState('');
   const [countInStock, setCountInStock] = useState(0);
   const [description, setDescription] = useState('');
   const [uploading, setUploading] = useState(false); // 🟢 Controls loading state
@@ -42,11 +72,13 @@ const ProductEditScreen = () => {
         setImage(product.image);
         setBrand(product.brand);
         setCategory(product.category);
+        setSize(product.size || '');
         setCountInStock(product.countInStock);
         setDescription(product.description);
       }
     }
   }, [dispatch, productId, product, navigate, successUpdate]);
+  const showSizeField = isApparelCategory(category);
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -96,6 +128,7 @@ const ProductEditScreen = () => {
         image,
         brand,
         category,
+        size: showSizeField ? size : '',
         countInStock,
         description,
       })
@@ -203,6 +236,23 @@ const ProductEditScreen = () => {
                 </datalist>
               </div>
             </div>
+
+            {showSizeField && (
+              <div>
+                <label className="block text-xs font-black text-muted uppercase mb-2 tracking-widest">Size</label>
+                <select
+                  className="w-full app-input"
+                  value={size}
+                  onChange={(e) => setSize(e.target.value)}
+                  required={showSizeField}
+                >
+                  <option value="">Select size</option>
+                  {SIZE_OPTIONS.map((option) => (
+                    <option key={option} value={option}>{option}</option>
+                  ))}
+                </select>
+              </div>
+            )}
 
             <div>
               <label className="block text-xs font-black text-muted uppercase mb-2 tracking-widest">Description</label>
