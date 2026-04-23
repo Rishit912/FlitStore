@@ -12,61 +12,89 @@ After review, the project was extended and refined over an additional **1.5 mont
 
 The first month focused on building the core product and proving the main user flow end to end.
 
-### Week 1: Project Setup and Core Structure
+### Daily Work Plan for 30 Days
 
-- Set up the React client and Node/Express server structure.
-- Connected the frontend to the backend APIs.
-- Added Redux-based state management for authentication, cart, products, and orders.
-- Prepared the database models for users, products, and orders.
+**Day 1:** Set up the project structure, install dependencies, and prepare the client and server folders.
 
-### Week 2: Customer Shopping Flow
+**Day 2:** Configure the backend server, database connection, and environment settings.
 
-- Built the homepage and product listing experience.
-- Added product detail screens with ratings, pricing, and availability information.
-- Implemented add-to-cart, cart updates, and checkout navigation.
-- Added login, registration, and protected user routes.
+**Day 3:** Create the main database models for users, products, and orders.
 
-### Week 3: Orders and Payments
+**Day 4:** Set up the frontend routing, layout, and app shell.
 
-- Added shipping, payment, and place-order screens.
-- Connected checkout data to order creation on the server.
-- Implemented payment integration support.
-- Added order history and order detail views.
+**Day 5:** Add Redux store setup and initial state management for auth and cart.
 
-### Week 4: Retailer Tools and Basic Admin Features
+**Day 6:** Build the navigation header, footer, and base responsive layout.
 
-- Created retailer dashboard pages for managing products and orders.
-- Added product create, edit, and delete flows.
-- Added summary cards and analytics-style sections for business visibility.
-- Cleaned up the app layout and prepared the first stable review version.
+**Day 7:** Create the homepage structure and connect the product listing API.
+
+**Day 8:** Add product cards, product images, and basic search/browse flow.
+
+**Day 9:** Build the product details page with price, rating, and stock display.
+
+**Day 10:** Add add-to-cart functionality and verify cart state updates correctly.
+
+**Day 11:** Create the cart screen with quantity selection and remove-item actions.
+
+**Day 12:** Add user login and registration screens.
+
+**Day 13:** Connect authentication to the backend and protect private routes.
+
+**Day 14:** Add profile-related UI and validate user session persistence.
+
+**Day 15:** Build the shipping screen and collect delivery details.
+
+**Day 16:** Build the payment screen and wire payment method selection.
+
+**Day 17:** Create the place-order screen and calculate final totals.
+
+**Day 18:** Connect order creation to the backend and verify checkout flow.
+
+**Day 19:** Add order history and order detail screen support.
+
+**Day 20:** Build basic review display and review submission flow.
+
+**Day 21:** Start retailer dashboard setup and create the main dashboard layout.
+
+**Day 22:** Add retailer product list and product management actions.
+
+**Day 23:** Add create product form and connect image/category/stock fields.
+
+**Day 24:** Add edit product support and update the backend product APIs.
+
+**Day 25:** Add delete product support and verify product removal flow.
+
+**Day 26:** Add dashboard summary cards and product/order analytics sections.
+
+**Day 27:** Improve styling consistency across the dashboard and product screens.
+
+**Day 28:** Refine checkout, cart, and order display for better user experience.
+
+**Day 29:** Run full manual testing on customer and retailer flows.
+
+**Day 30:** Fix final issues, clean up the codebase, and prepare the first review-ready version.
 
 ## Completion Work In 1.5 Months After Review
 
-The next phase was used to finish the project properly after feedback and review. This part focused on feature completeness, polish, and reliability.
+After the first month was completed and reviewed, the next 1.5 months were used to improve the project, fix gaps, and finalize the experience.
 
-### Phase 1: Feature Refinement
+### Review Phase 1: Days 31 to 45
 
-- Improved shopping interactions and fixed edge cases in the product flow.
+- Strengthened shopping interactions and fixed edge cases in the product flow.
 - Refined the negotiation experience so discounted prices are handled consistently.
 - Improved product rating display and dashboard styling.
 - Ensured deleted products no longer appear in active order flows.
-
-### Phase 2: UI and Theme Consistency
-
 - Unified the light and dark theme behavior across major screens.
 - Replaced hardcoded colors with theme-aware styling.
 - Improved retailer dashboard readability and card layout consistency.
 - Polished responsive behavior for desktop and mobile screens.
 
-### Phase 3: Business Logic and Data Integrity
+### Review Phase 2: Days 46 to 60
 
 - Strengthened order and product handling on the server.
 - Added better validation for cart, checkout, and offer-based pricing.
 - Verified customer and retailer dashboards update correctly after purchases and deletions.
 - Improved the overall data flow between frontend state and backend responses.
-
-### Phase 4: Testing and Final Review
-
 - Ran manual testing for login, registration, cart, checkout, and order placement.
 - Verified retailer product management and order visibility.
 - Checked mobile responsiveness and browser consistency.
