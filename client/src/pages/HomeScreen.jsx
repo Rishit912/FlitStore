@@ -5,6 +5,12 @@ import Product from '../components/Product';
 import { listProducts } from '../actions/productActions'; // Ensure this action exists
 import axios from 'axios';
 
+const toArray = (value) => {
+  if (Array.isArray(value)) return value;
+  if (value && Array.isArray(value.products)) return value.products;
+  return [];
+};
+
 const HomeScreen = () => {
   const { keyword } = useParams(); // 🟢 Extracts the keyword from the URL
   const dispatch = useDispatch();
@@ -50,6 +56,7 @@ const HomeScreen = () => {
   // Pulling state from Redux instead of local useState
   const productList = useSelector((state) => state.productList);
   const { loading, error, products } = productList;
+  const safeProducts = useMemo(() => toArray(products), [products]);
 
   useEffect(() => {
     // Every time the keyword or category changes, we re-fetch
@@ -70,7 +77,7 @@ const HomeScreen = () => {
     const fetchCategories = async () => {
       try {
         const { data } = await axios.get('/api/products/categories');
-        setCategories(data || []);
+        setCategories(toArray(data));
       } catch {
         setCategories([]);
       }
@@ -82,7 +89,7 @@ const HomeScreen = () => {
     const fetchBrands = async () => {
       try {
         const { data } = await axios.get('/api/products/brands');
-        setBrands(data || []);
+        setBrands(toArray(data));
       } catch {
         setBrands([]);
       }
@@ -115,9 +122,8 @@ const HomeScreen = () => {
           axios.get('/api/products/best-sellers?limit=8'),
         ]);
 
-        setNewArrivals((newArrivalsRes.data || []).slice(0, 8));
-
-        setBestSellers((bestSellersRes.data || []).slice(0, 8));
+        setNewArrivals(toArray(newArrivalsRes.data).slice(0, 8));
+        setBestSellers(toArray(bestSellersRes.data).slice(0, 8));
       } catch {
         setNewArrivals([]);
         setBestSellers([]);
@@ -128,11 +134,11 @@ const HomeScreen = () => {
   }, []);
 
   const priceBounds = useMemo(() => {
-    if (!products || products.length === 0) return { min: 0, max: 0 };
-    const prices = products.map((p) => Number(p.price)).filter((n) => !Number.isNaN(n));
+    if (!safeProducts.length) return { min: 0, max: 0 };
+    const prices = safeProducts.map((p) => Number(p.price)).filter((n) => !Number.isNaN(n));
     if (!prices.length) return { min: 0, max: 0 };
     return { min: Math.min(...prices), max: Math.max(...prices) };
-  }, [products]);
+  }, [safeProducts]);
 
   const categoryList = useMemo(() => {
     const fallback = ['Men', 'Women', 'Electronics', 'Accessories'];
@@ -533,8 +539,8 @@ const HomeScreen = () => {
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8 animate-fade-in">
-              {products && products.length > 0 ? (
-                products.map((product) => (
+              {safeProducts.length > 0 ? (
+                safeProducts.map((product) => (
                   <Product key={product._id} product={product} />
                 ))
               ) : (
