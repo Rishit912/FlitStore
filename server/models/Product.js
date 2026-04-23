@@ -1,5 +1,4 @@
-export { default } from './Product.js';
-import mongoose from 'mongoose'; 
+export { default } from './Product.js';import mongoose from 'mongoose'; 
 
 // Define the review schema
 const reviewSchema = new mongoose.Schema({
