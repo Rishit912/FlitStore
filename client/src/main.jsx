@@ -7,9 +7,11 @@ import App from './App.jsx'
 import { Provider } from 'react-redux';
 import store from './store.js';
 import axios from 'axios';
+import { buildApiUrl } from './api.js';
 
 // This is the most important line for your "Session Expired" problem
 axios.defaults.withCredentials = true; 
+axios.defaults.baseURL = buildApiUrl('');
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>

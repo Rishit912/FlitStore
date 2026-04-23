@@ -6,6 +6,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import axios from 'axios';
 import { jsPDF } from 'jspdf'; 
 import autoTable from 'jspdf-autotable'; // 🟢 FIXED: Import as a standalone function
+import { apiFetch } from '../api.js';
 import { deliverOrder } from '../actions/orderActions';
 import { ORDER_DELIVER_RESET } from '../constants/orderConstants';
 import { applyDiscount } from '../slices/cartSlice';
@@ -174,7 +175,7 @@ const OrderScreen = () => {
   useEffect(() => {
     const fetchOrderAndConfig = async () => {
       try {
-        const res = await fetch(`/api/orders/${orderId}`, { credentials: 'include' });
+        const res = await apiFetch(`/api/orders/${orderId}`);
         const data = await res.json();
         if (!res.ok) throw new Error(data.message);
         setOrder(data);
@@ -182,7 +183,7 @@ const OrderScreen = () => {
 
         if (!data.isPaid) {
           try {
-            const resPaypal = await fetch('/api/config/paypal');
+            const resPaypal = await apiFetch('/api/config/paypal');
             const paypalData = await resPaypal.json();
             setPaypalClientId(paypalData.clientId);
           } catch (error) {
@@ -190,7 +191,7 @@ const OrderScreen = () => {
           }
 
           try {
-            const resRazorpay = await fetch('/api/config/razorpay');
+            const resRazorpay = await apiFetch('/api/config/razorpay');
             const razorpayData = await resRazorpay.json();
             setRazorpayKeyId(razorpayData.key);
           } catch (error) {
@@ -230,9 +231,8 @@ const OrderScreen = () => {
         return;
     }
     try {
-        const result = await fetch('/api/razorpay', {
+        const result = await apiFetch('/api/razorpay', {
             method: 'POST',
-            credentials: 'include',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ amount: finalTotal }), 
         });
@@ -253,9 +253,8 @@ const OrderScreen = () => {
             description: `Payment for Order #${order._id}`,
             order_id: data.id, 
             handler: async function (response) {
-                 const payRes = await fetch(`/api/orders/${orderId}/pay`, {
+                 const payRes = await apiFetch(`/api/orders/${orderId}/pay`, {
                     method: 'PUT',
-                    credentials: 'include',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         id: response.razorpay_payment_id,

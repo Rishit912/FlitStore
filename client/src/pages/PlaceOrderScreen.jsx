@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { toast } from 'react-toastify';
 import { clearCartItems } from '../slices/cartSlice';
+import { apiFetch } from '../api.js';
 
 const PlaceOrderScreen = () => {
     const navigate = useNavigate();
@@ -78,9 +79,8 @@ const PlaceOrderScreen = () => {
             }
 
             // Send Order to Backend (cookie-based auth)
-            const res = await fetch('/api/orders', {
+            const res = await apiFetch('/api/orders', {
                 method: 'POST',
-                credentials: 'include',
                 headers: {
                     'Content-Type': 'application/json',
                 },
