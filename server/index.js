@@ -5,7 +5,6 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import Razorpay from 'razorpay';
 import shortid from 'shortid';
-import connectDB from './config/db.js';
 
 // Route Imports
 import productRoutes from './routes/productRoutes.js';
@@ -20,7 +19,6 @@ import bannerRoutes from './routes/bannerRoutes.js';
 import { notFound, errorHandler } from './middleware/errorMiddleware.js';
 
 dotenv.config();
-connectDB();
 
 const app = express();
 
