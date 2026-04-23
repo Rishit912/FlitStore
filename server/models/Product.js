@@ -1,3 +1,4 @@
+export { default } from './Product.js';
 import mongoose from 'mongoose'; 
 
 // Define the review schema
