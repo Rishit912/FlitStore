@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
-import { FaTrash, FaPlus } from 'react-icons/fa';
+import { FaTrash, FaPlus, FaToggleOn, FaToggleOff } from 'react-icons/fa';
 
 const CouponListScreen = () => {
   const [coupons, setCoupons] = useState([]);
@@ -37,6 +37,18 @@ const CouponListScreen = () => {
     }
   };
 
+  const toggleActiveHandler = async (coupon) => {
+    try {
+      const { data } = await axios.patch(`/api/coupons/${coupon._id}/active`, {
+        isActive: !coupon.isActive,
+      });
+      toast.success(`${data.name} is now ${data.isActive ? 'active' : 'inactive'}`);
+      fetchCoupons();
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Unable to update coupon status');
+    }
+  };
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
       <h1 className="text-2xl font-black uppercase mb-6 text-foreground">Coupon Management</h1>
@@ -66,6 +78,7 @@ const CouponListScreen = () => {
             <th className="p-4 text-left text-xs font-black uppercase">Code</th>
             <th className="p-4 text-left text-xs font-black uppercase">Discount</th>
             <th className="p-4 text-left text-xs font-black uppercase">Expires</th>
+            <th className="p-4 text-left text-xs font-black uppercase">Status</th>
             <th className="p-4 text-left text-xs font-black uppercase">Action</th>
           </tr>
         </thead>
@@ -76,7 +89,21 @@ const CouponListScreen = () => {
               <td className="p-4 text-muted">{c.discount}%</td>
               <td className="p-4 text-muted">{new Date(c.expiry).toLocaleDateString()}</td>
               <td className="p-4">
-                <button onClick={() => deleteHandler(c._id)} className="text-red-500"><FaTrash /></button>
+                <span className={`text-[10px] font-black uppercase px-2 py-1 rounded-full ${c.isActive ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+                  {c.isActive ? 'Active' : 'Inactive'}
+                </span>
+              </td>
+              <td className="p-4">
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => toggleActiveHandler(c)}
+                    className="text-primary"
+                    title={c.isActive ? 'Deactivate coupon' : 'Activate coupon'}
+                  >
+                    {c.isActive ? <FaToggleOn size={18} /> : <FaToggleOff size={18} />}
+                  </button>
+                  <button onClick={() => deleteHandler(c._id)} className="text-red-500" title="Delete coupon"><FaTrash /></button>
+                </div>
               </td>
             </tr>
           ))}

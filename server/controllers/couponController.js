@@ -1,6 +1,24 @@
 import asyncHandler from 'express-async-handler';
 import Coupon from '../models/couponModel.js';
 
+const getActiveCouponQuery = () => ({
+  isActive: true,
+  expiry: { $gt: new Date() },
+});
+
+const getActiveCouponProjection = 'name discount expiry isActive createdAt';
+
+// @desc    Get currently active coupon for all users
+// @route   GET /api/coupons/active
+// @access  Public
+export const getActiveCoupon = asyncHandler(async (req, res) => {
+  const coupon = await Coupon.findOne(getActiveCouponQuery())
+    .sort({ createdAt: -1 })
+    .select(getActiveCouponProjection);
+
+  res.json(coupon || null);
+});
+
 // @desc    Validate coupon code
 // @route   POST /api/coupons/validate
 // @access  Private
@@ -43,9 +61,31 @@ export const createCoupon = asyncHandler(async (req, res) => {
     name,
     discount,
     expiry,
+    isActive: true,
   });
 
   res.status(201).json(coupon);
+});
+
+// @desc    Toggle coupon active state
+// @route   PATCH /api/coupons/:id/active
+// @access  Private/Admin
+export const updateCouponActiveStatus = asyncHandler(async (req, res) => {
+  const coupon = await Coupon.findById(req.params.id);
+
+  if (!coupon) {
+    res.status(404);
+    throw new Error('Coupon not found');
+  }
+
+  if (typeof req.body.isActive === 'boolean') {
+    coupon.isActive = req.body.isActive;
+  } else {
+    coupon.isActive = !coupon.isActive;
+  }
+
+  const updatedCoupon = await coupon.save();
+  res.json(updatedCoupon);
 });
 
 // @desc    Get all coupons

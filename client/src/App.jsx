@@ -7,6 +7,8 @@ import 'react-toastify/dist/ReactToastify.css';
 
 // Components
 import Header from './components/Header.jsx'; 
+import CouponNotice from './components/CouponNotice.jsx';
+import BannerPopup from './components/BannerPopup.jsx';
 import Footer from './components/Footer.jsx';
 import AdminRoute from './pages/AdminRoute.jsx'; 
 
@@ -43,9 +45,11 @@ function App() {
         theme="colored"
         pauseOnHover={false} // 🟢 Professional touch: don't pause on hover for short alerts
       /> 
+      <BannerPopup />
       
       <div className="flex flex-col min-h-screen bg-app">
         <Header /> 
+        <CouponNotice className="mt-16" />
         
         {/* pt-20 matches your fixed header height for a seamless look */}
         <main className="flex-grow pt-20 pb-10"> 
