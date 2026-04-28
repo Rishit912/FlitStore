@@ -11,7 +11,7 @@ import { buildApiUrl } from './api.js';
 
 // This is the most important line for your "Session Expired" problem
 axios.defaults.withCredentials = true; 
-axios.defaults.baseURL = buildApiUrl('');
+axios.defaults.baseURL = import.meta.env.DEV ? '' : buildApiUrl('');
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
