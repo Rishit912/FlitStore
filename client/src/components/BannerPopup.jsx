@@ -1,15 +1,10 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
 
 const BannerPopup = () => {
   const [banner, setBanner] = useState(null);
   const [isVisible, setIsVisible] = useState(false);
-
-  const dismissKey = useMemo(() => {
-    if (!banner) return null;
-    return `flitstore-banner-dismissed:${banner._id || banner.updatedAt || banner.title || 'default'}`;
-  }, [banner]);
 
   useEffect(() => {
     const loadBanner = async () => {
@@ -27,17 +22,11 @@ const BannerPopup = () => {
   }, []);
 
   useEffect(() => {
-    if (!banner || !dismissKey || typeof window === 'undefined') return;
+    if (!banner) return undefined;
 
-    const dismissed = window.localStorage.getItem(dismissKey);
-    if (!dismissed) {
-      const timer = window.setTimeout(() => setIsVisible(true), 250);
-      return () => window.clearTimeout(timer);
-    }
-
-    setIsVisible(false);
-    return undefined;
-  }, [banner, dismissKey]);
+    const timer = window.setTimeout(() => setIsVisible(true), 250);
+    return () => window.clearTimeout(timer);
+  }, [banner]);
 
   useEffect(() => {
     if (!isVisible || typeof document === 'undefined') return undefined;
@@ -51,9 +40,6 @@ const BannerPopup = () => {
   }, [isVisible]);
 
   const closeHandler = () => {
-    if (dismissKey && typeof window !== 'undefined') {
-      window.localStorage.setItem(dismissKey, '1');
-    }
     setIsVisible(false);
   };
 
