@@ -1,6 +1,6 @@
 import asyncHandler from 'express-async-handler';
 import Order from '../models/orderModel.js';
-import Product from '../models/product.js';
+import Product from '../models/Product.js';
 import sendEmail from '../utils/sendEmail.js';
 
 const FULFILLMENT_STATUS = ['pending', 'packed', 'shipped', 'out_for_delivery', 'delivered', 'cancelled'];

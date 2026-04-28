@@ -1,4 +1,4 @@
-export { default } from './Product.js';import mongoose from 'mongoose'; 
+import mongoose from 'mongoose';
 
 // Define the review schema
 const reviewSchema = new mongoose.Schema({
@@ -23,7 +23,6 @@ const reviewSchema = new mongoose.Schema({
 }, {
     timestamps: true
 });
-
 
 // The main Product schema
 const ProductSchema = new mongoose.Schema({
@@ -90,4 +89,4 @@ const ProductSchema = new mongoose.Schema({
 
 const Product = mongoose.model('Product', ProductSchema);
 
-export default Product; // 🟢 Changed from module.exports
+export default Product;

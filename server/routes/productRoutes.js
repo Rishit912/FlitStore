@@ -21,7 +21,7 @@ import {
   deleteProductReview,
 } from '../controllers/productController.js';
 
-import { protect, admin } from '../middleware/authMiddleware.js';
+import { protect, admin } from '../middleware/authmiddleware.js';
 
 // --- SUGGESTIONS ROUTE ---
 router.route('/suggestions').get(getProductSuggestions);

@@ -19,7 +19,7 @@ import {
 router.post('/reset-password', requestPasswordReset);
 router.post('/reset-password/:token', resetPassword);
 
-import { protect, admin } from '../middleware/authMiddleware.js';
+import { protect, admin } from '../middleware/authmiddleware.js';
 
 // Define your routes
 router.post('/login', authUser);

@@ -14,6 +14,7 @@ import razorpayRoutes from './routes/razorpayRoutes.js';
 import uploadRoutes from './routes/uploadRoutes.js'; 
 import couponRoutes from './routes/couponRoutes.js';
 import bannerRoutes from './routes/bannerRoutes.js';
+import connectDB from './config/db.js';
 
 // Import Error Middleware (Only once!)
 import { notFound, errorHandler } from './middleware/errorMiddleware.js';
@@ -95,10 +96,21 @@ app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
 
-if (!process.env.VERCEL) {
-  app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
-  });
-}
+const startServer = async () => {
+  if (!process.env.VERCEL) {
+    try {
+      await connectDB();
+
+      app.listen(PORT, () => {
+        console.log(`Server is running on port ${PORT}`);
+      });
+    } catch (error) {
+      console.error('Failed to start server:', error.message);
+      process.exit(1);
+    }
+  }
+};
+
+startServer();
 
 export default app;

@@ -7,7 +7,7 @@ import {
   getCoupons, 
   deleteCoupon 
 } from '../controllers/couponController.js';
-import { protect, admin } from '../middleware/authMiddleware.js';
+import { protect, admin } from '../middleware/authmiddleware.js';
 
 router.route('/')
   .get(protect, admin, getCoupons)

@@ -1,6 +1,5 @@
 import mongoose from 'mongoose';
 
-const MONGO_URI = process.env.MONGO_URI;
 const globalForMongoose = globalThis;
 
 if (!globalForMongoose.__flitStoreMongoose) {
@@ -9,6 +8,8 @@ if (!globalForMongoose.__flitStoreMongoose) {
 
 const connectDB = async () => {
     try {
+        const MONGO_URI = process.env.MONGO_URI;
+
         if (!MONGO_URI) {
             throw new Error('MONGO_URI is not configured');
         }

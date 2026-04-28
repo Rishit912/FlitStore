@@ -1,6 +1,6 @@
 import express from 'express';
 import { getBanner, upsertBanner } from '../controllers/bannerController.js';
-import { protect, admin } from '../middleware/authMiddleware.js';
+import { protect, admin } from '../middleware/authmiddleware.js';
 
 const router = express.Router();
 

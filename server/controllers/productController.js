@@ -1,5 +1,5 @@
 import asyncHandler from 'express-async-handler';
-import Product from '../models/product.js'; // Ensure the .js extension is present
+import Product from '../models/Product.js'; // Ensure the .js extension is present
 import Order from '../models/orderModel.js';
 
 const normalizeProductField = (value) => String(value ?? '').trim().toLowerCase();
