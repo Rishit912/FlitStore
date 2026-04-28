@@ -1,9 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
+import { toast } from 'react-toastify';
 
 const CouponNotice = ({ className = '' }) => {
   const [coupon, setCoupon] = useState(null);
+  const lastToastKeyRef = useRef('');
 
   useEffect(() => {
     const loadCoupon = async () => {
@@ -20,6 +22,19 @@ const CouponNotice = ({ className = '' }) => {
 
     return () => clearInterval(intervalId);
   }, []);
+
+  useEffect(() => {
+    if (!coupon) return;
+
+    const toastKey = `${coupon._id || coupon.name}-${coupon.updatedAt || coupon.expiry}`;
+    if (lastToastKeyRef.current === toastKey) return;
+
+    lastToastKeyRef.current = toastKey;
+    toast.info(`Coupon ${coupon.name} is live now. Use ${coupon.discount}% off before ${new Date(coupon.expiry).toLocaleDateString()}.`, {
+      toastId: `coupon-toast-${toastKey}`,
+      autoClose: 4500,
+    });
+  }, [coupon]);
 
   if (!coupon) return null;
 

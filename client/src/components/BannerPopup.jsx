@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
+import { toast } from 'react-toastify';
 
 const BannerPopup = () => {
   const [banner, setBanner] = useState(null);
@@ -27,6 +28,17 @@ const BannerPopup = () => {
     const timer = window.setTimeout(() => setIsVisible(true), 250);
     return () => window.clearTimeout(timer);
   }, [banner]);
+
+  useEffect(() => {
+    if (!banner || !isVisible) return undefined;
+
+    toast.info(`Coupon ${banner.badgeText || banner.title || 'offer'} is live now.`, {
+      toastId: `banner-toast-${banner._id || banner.updatedAt || banner.title || 'default'}`,
+      autoClose: 3500,
+    });
+
+    return undefined;
+  }, [banner, isVisible]);
 
   useEffect(() => {
     if (!isVisible || typeof document === 'undefined') return undefined;
